@@ -1,6 +1,38 @@
 <%- include("./partials/header") %>
 <body>
-    <%- include("./partials/nav1") %>
-    
+    <!-- '<nav>
+        <a href="/"> <h1>tilbake</h1></a>
+        <div class="links">
+            <a href="../guide">guide</a>
+            <a href="/login">logg inn</a>
+        </div>
+    </nav>' -->
+    <!-- <div class="topish">
+        <div class="top">
+            <a href="/"><h1>tilbake</h1></a>
+            <a href="">logg ut</a>
+        </div>
+        <div class="test2">
+            <div class="background2">
+                <p>e</p>
+            </div>
+        </div>
+    </div> -->
+    <%- include("./partials/dashborad_nav") %>
+    <div class="search-bar">
+        <form action="/search" method="GET">
+            <input type="text" name="query" class="search-input" placeholder="Search here" required>
+        </form>
+    </div>
+    <div class="allebox">
+       
+        <a class="din" href="/guide#tittel1"><div class="boxes">tittels1</div></a>
+        <a class="din" href="/guide#tittel2"> <div class="boxes">tittels2</div></a>
+        <a class="din" href="/guide#tittel3"> <div class="boxes">tittel3</div></a>
+        <a class="din" href="/guide#tittel4"> <div class="boxes">tittel4</div></a>
+        <a class="din" href="/guide#tittel5"> <div class="boxes">tittel5</div></a>
+        <a class="din" href="/guide#tittel6"> <div class="boxes">tittel6</div></a>
+       
+    </div>
 </body>
 </html>

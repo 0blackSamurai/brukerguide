@@ -1,7 +1,10 @@
 :root {
     --primary-color: rgb(212, 243, 244);
 }
-
+body {
+    margin: 0px;
+    padding: 0px;
+}
 nav {
     border-bottom: 1px solid black;
     display: flex;
@@ -10,12 +13,45 @@ nav {
     justify-content: space-between;
     padding: 10px 0px;
 }
+.top {
+    border-bottom: 1px solid black;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0px;
+    width: 75%;
+    position: relative;
+    left: 25%;
+}
+.tilbake1{
+    display: flex;
+    position: relative;
+    top: 100%;
+    top: -60px;
+
+}
+.topish {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
 
 .links {
     display: flex;
     align-items: center;
     margin-left: auto;
     gap: 20px; /* Adds space between the links */
+    margin-right: 0px;
+    justify-content: flex-end;
+}
+.links a{
+    align-self: center;
+    color: black;
+    text-decoration: none;
+    font-size: large;
+    margin-right: 15px;
+    
 }
 
 .search-bar {
@@ -67,30 +103,52 @@ nav {
 .test {
     display: flex;
     flex-direction: row;
-    height: 100%;
+    height: 100vh -100px;
     justify-content: center;
 }
+.test1 {
+    display: flex;
+    flex-direction: row;
+    height: 100vh -100px;
+}
 .background {
+    
     /* background-color: rgb(182, 175, 175); */
-    height: 100%;
+    height: 100vh -100px;
     width: 100%;
     text-align: center;
+    grid-area: guide;
 }
 .background1 {
     display: flex;
     background-color: var(--primary-color);
-    height: 100%;
+    height:100vh;
+    position: fixed;
     border-right: 1px solid black;
     border-left: 1px solid black;
     box-shadow: 1px 1px 3px;
-    width: 35%;
+    width: 20%;
     flex-direction: column;
-    padding-bottom: 30%;
+    grid-area: tittels;
+    }
+    
+.background2 {
+    display: flex;
+    background-color: var(--primary-color);
+    height:100vh;
+    border-right: 1px solid black;
+    border-left: 1px solid black;
+    box-shadow: 1px 1px 3px;
+    width: 25%;
+    flex-direction: column;
+    position: relative;
+    top: 100%;
     }
 .background1 a{
     color: black;
     text-decoration: none;
     font-size: large;
+    align-self: center;
 }
 .tittels {
     /* padding-left: 30%; */
@@ -152,3 +210,70 @@ nav {
     /* border: 2px solid black; */
     border-radius: 1px;
 }
+.ny_guides {
+    background-color: var(--primary-color); 
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    }
+.midden {
+    display: flex;
+    align-self: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.midden1 {
+    display: flex;
+    align-self: center;
+    justify-content: center;
+    width: 60%;
+    margin: auto;
+}
+.LagSeksjon {
+    display: flex;
+    border: 1px solid black;
+    background-color: var(--primary-color);
+    padding: 10px 30px;
+    border-radius: 30px;
+    margin: auto;
+}
+.den {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    border: 1px solid black;
+    justify-content: center;
+    border-radius: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: var(--primary-color);
+    width: 20%;
+    align-items: center;
+}
+.midden input {
+    width: 200px;
+    height: 20px;
+}
+.seksjons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center ;
+}
+.middle {
+    align-items: center;
+}
+.parent {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-template-rows: 1fr;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    grid-template-areas:"tittels guide";
+    }

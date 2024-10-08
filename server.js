@@ -165,14 +165,15 @@ const userSchema = new Schema({
 
 const User = mongoose.model("User", userSchema);
 
-app.get("/", (req, res) => { 
+app.get("/", async (req, res) => {
+    const guides = await Guide.find();
    let isloggedin = false
    if(req.session.user){
     isloggedin=true;
   }
 
     
-    res.render("index" , { isloggedin });
+    res.render("index" , { guides, isloggedin });
     
 });
 const guideSchema = new Schema({
@@ -231,8 +232,9 @@ app.get("/login", (req, res) => {
 
 });
 
-app.get("/dashboard", (req, res) => {
-    res.render("dashborad"); 
+app.get("/dashboard", async (req, res) => {
+    const guides = await Guide.find();
+    res.render("dashborad", {guides}); 
 });
 app.get("/ny_guide", (req, res) => {
     res.render("ny_guide"); 

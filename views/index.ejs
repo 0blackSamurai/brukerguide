@@ -15,14 +15,20 @@
         </form>
     </div>
     <div class="allebox">
-       
-        <a class="din" href="/guide#tittel1"><div class="boxes">tittels1</div></a>
-        <a class="din" href="/guide#tittel2"> <div class="boxes">tittels2</div></a>
-        <a class="din" href="/guide#tittel3"> <div class="boxes">tittel3</div></a>
-        <a class="din" href="/guide#tittel4"> <div class="boxes">tittel4</div></a>
-        <a class="din" href="/guide#tittel5"> <div class="boxes">tittel5</div></a>
-        <a class="din" href="/guide#tittel6"> <div class="boxes">tittel6</div></a>
-       
+        
+        <% guides.forEach((guide, index) => { %>
+            <a class="din" href="/guide#guide<%= guide.id %>">
+                <div class="boxes"><%= guide.tittel %></div>
+            </a>
+        <% }); %>
     </div>
+    
+    <!-- <% guides.forEach((guide) => { %>
+        <div id="guide<%= guide.id %>" class="texton">  Unique ID for each guide -->
+            <!-- <h2><%= guide.tittel %></h2> -->
+            <!-- Legg til mer innhold for guiden her -->
+        </div>
+    <!-- <% }); %> --> 
+    
 </body>
 </html>

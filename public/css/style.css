@@ -83,6 +83,18 @@ nav {
     height: 80px;
     width: 80px;
 }
+.loggbox {
+    display: flex;
+    justify-content: center ;
+}
+.loggout{
+    background-color: var(--primary-color);
+    width: 100px;
+    height: 30px;
+    border-radius: 30px;
+    align-self: center;
+    margin-top: 20px;
+}
 .boxes{
     display: flex;
     padding: 10px;
@@ -138,7 +150,7 @@ nav {
     border-right: 1px solid black;
     border-left: 1px solid black;
     box-shadow: 1px 1px 3px;
-    width: 20%;
+    width: 17%;
     flex-direction: column;
     grid-area: tittels;
     }
@@ -175,8 +187,21 @@ nav {
     padding: 0px 100px;
     padding-top: 40px;
 }
+.guides-container {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
 .texton {
+    display: flex;
     padding-bottom: 50px;
+    background-color: var(--primary-color);
+    border-radius: 20px;
+    border: 1px solid black;
+    align-items: center ;
+    justify-content: center;
+    width: 70%;
 }
 /* .loggdiv {
     background-color: aliceblue;

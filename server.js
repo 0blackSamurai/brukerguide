@@ -86,6 +86,21 @@ const bcrypt = require("bcrypt");
 const multer = require("multer")
 const path = require("path");
 const { stringify } = require("querystring");
+const session = require("express-session");
+
+
+app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "passord1", // Replace with a strong secret key
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: false, // Set to true if using HTTPS
+        maxAge: 1000 * 60 * 60 * 24, // Session expires after 1 day
+      },
+    })
+  );
+
 
 
 const Schema = mongoose.Schema;
@@ -143,14 +158,22 @@ const brukerguide = mongoose.model("brukerguide", brukerSchema)
 // })
 
 const userSchema = new Schema({
-  email: String,
-  password: String,
-});
+    email: String,
+    password: String,
+    loggedIn: { type: Boolean, default: false }, // Track login status
+  });
 
 const User = mongoose.model("User", userSchema);
 
-app.get("/", (req, res) => {
-    res.render("index");
+app.get("/", (req, res) => { 
+   let isloggedin = false
+   if(req.session.user){
+    isloggedin=true;
+  }
+
+    
+    res.render("index" , { isloggedin });
+    
 });
 const guideSchema = new Schema({
     tittel: String,
@@ -166,11 +189,20 @@ const guideSchema = new Schema({
 // });
 app.get("/guide", async (req, res) => {
     const guides = await Guide.find();
-    res.render("guide", { guides });
+    let isloggedin = false
+   if(req.session.user){
+    isloggedin=true;
+  }
+
+    
+ 
+    res.render("guide", { guides,isloggedin });
+    
 });
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "./uploads"); // Opprett "uploads" mappen hvis den ikke eksisterer
+        cb(null, "./public/uploads"); // Opprett "uploads" mappen hvis den ikke eksisterer
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
@@ -182,11 +214,21 @@ const upload = multer({ storage: storage });
 
 
 app.get("/create", (req, res) => {
-    res.render("createUser");
+    let isloggedin=false;
+
+  if(req.session.user){
+    isloggedin=true;
+  }
+    res.render("createUser", {isloggedin});
 });
 
 app.get("/login", (req, res) => {
-    res.render("login");
+    let isloggedin = false
+   if(req.session.user){
+    isloggedin=true;
+  }
+    res.render("login", {isloggedin});
+
 });
 
 app.get("/dashboard", (req, res) => {
@@ -219,6 +261,15 @@ app.post("/ny_guide", upload.single("bilde"), async (req, res) => {
 
 // let logget = false;
 
+app.get("/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).send("Could not log out.");
+      }
+      res.redirect("/login"); // Redirect to login page after logout
+    });
+  });
+
 app.post("/create", async (req, res) => {
     const { brukernavn, password, confirmpassword } = req.body;
     
@@ -236,6 +287,7 @@ app.post("/create", async (req, res) => {
                 console.log(result);
                 
                 if (result._id) {
+                    req.session.user = { name: newUser.email}
                     res.redirect("/dashboard");
                 }
             } catch (err) {
@@ -276,6 +328,7 @@ app.post("/login", async (req, res) => {
         console.log("result", user);
         
         bcrypt.compare(password, user.password).then(() => {
+            req.session.user = { name: user.email };
             res.status(200).redirect("/dashboard");
             
           }).catch((error) => {
@@ -294,7 +347,15 @@ app.post("/login", async (req, res) => {
 app.get("/search", (req, res) => {
   const query = req.query.query;
   console.log("Search query:", query);
-  res.render("guide");
+
+  let isloggedin=false;
+
+  if(req.session.user){
+    isloggedin=true;
+  }
+
+
+  res.render("guide", { isloggedin });
   // res.send(`You searched for: ${query}`);
 });
 

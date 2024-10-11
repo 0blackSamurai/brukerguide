@@ -1,0 +1,47 @@
+
+<%- include("./partials/header") %>
+<body>
+    <div class="parent">
+        <div class="background1">
+            <a href="/"> <h1>tilbake</h1></a>
+            <!-- <a class="tittels" href="#"><p>tittel1</p></a> -->
+            <% guides.forEach((guide, index) => { %>
+                <a class="tittels" href="#guide<%= index + 1 %>">
+                    <p><%= guide.tittel %></p>
+                </a>
+            <% }); %>
+        </div>
+        <div class="background">
+            <div class="links">
+               <% if (isloggedin){ %>
+                <a href="/dashboard">profile</a>
+               <%} else{ %>
+                    <a href="/login">Logg inn</a>
+               <%}%>
+            </div>
+            <h1>Guide til Verden</h1>
+           
+            <% if (guides.length > 0) { %>
+                <div class="guides-container"> <!-- Optional: a container for all guides -->
+                    <% guides.forEach((guide, index) => { %>
+                        <div id="guide<%= index + 1 %>" class="texton"> <!-- Unique ID for each guide -->
+                            <h2><%= guide.tittel %></h2>
+                            <p><%= guide.beskrivelse %></p>
+                            <% if (guide.bilde) { %>
+                                <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" class="bilder"/>
+                            <% } %>
+                            <button class="editButton" data-id="<%= index + 1 %>">Rediger</button>
+                        <button class="saveButton" data-id="<%= index + 1 %>" style="display:none;">Lagre</button>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p>Ingen guider tilgjengelig.</p>
+            <% } %>
+            </div>
+        </div>
+    </div>
+   
+    <script src="../server.js"></script>
+</body>
+</html>

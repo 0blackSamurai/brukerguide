@@ -148,7 +148,7 @@ const brukerSchema = new Schema({
     tittel: String,
     tag: String,
     overskrift: Array,
-    beskrivelse: Array,
+    beskrivelse: String,
     bilde: Array,
 });
 const brukerguide = mongoose.model("brukerguide", brukerSchema)
@@ -176,29 +176,42 @@ app.get("/", async (req, res) => {
     res.render("index" , { guides, isloggedin });
     
 });
-const guideSchema = new Schema({
+app.get("/searchResults", async (req, res) => {
+    const guides = await Guide.find();
+    const searchTerm = req.query.query;
+   let isloggedin = false
+   if(req.session.user){
+    isloggedin=true;
+  }
+
+    
+    res.render("searchResults" , { guides, isloggedin });
+    
+});
+const guideSchema = new mongoose.Schema({
     tittel: String,
     tag: String,
     overskrift: String,
     beskrivelse: String,
-    bilde: String,
+    bilde: String
 });
 
 
 // app.get("/guide", (req, res) => {
 //     res.render("guide");
 // });
-app.get("/guide", async (req, res) => {
-    const guides = await Guide.find();
-    let isloggedin = false
-   if(req.session.user){
-    isloggedin=true;
-  }
+app.get("/guide/:id", async (req, res) => { 
+    const { id } = req.params;
+    const guide = await Guide.findById(id);
+    let isloggedin = false;
+    let user = null;
 
-    
- 
-    res.render("guide", { guides,isloggedin });
-    
+    if (req.session.user) {
+        isloggedin = true;
+        user = req.session.user;  // Pass user details
+    }
+
+    res.render("guide", { guide, isloggedin, user });
 });
 
 const storage = multer.diskStorage({
@@ -222,7 +235,7 @@ app.get("/create", (req, res) => {
   }
     res.render("createUser", {isloggedin});
 });
-
+let isloggedin = false
 app.get("/login", (req, res) => {
     let isloggedin = false
    if(req.session.user){
@@ -246,20 +259,55 @@ const Guide = mongoose.model("Guide", guideSchema);
 // })
 app.post("/ny_guide", upload.single("bilde"), async (req, res) => {
     const { tittel, tag, overskrift, beskrivelse } = req.body;
-    const bilde = req.file ? req.file.filename : ""; // Lagre filnavn hvis opplastet
+    const bilde = req.file ? req.file.filename : ""; // Save image filename if uploaded
 
-    // Opprett ny guide
-    const newGuide = new Guide({ tittel, tag, overskrift, beskrivelse, bilde });
+    // Create new guide with the logged-in user's ID as the creator
+    const newGuide = new Guide({ 
+        tittel, 
+        tag, 
+        overskrift, 
+        beskrivelse, 
+        bilde, 
+        creator: req.session.user._id  // Store creator's ID
+    });
 
     try {
         await newGuide.save();
-        console.log("Ny guide lagret:", newGuide);
-        res.redirect("/guide"); // Omrediriger til guide-siden etter lagring
+        res.redirect(`/guide/${newGuide._id}`);  // Redirect to guide page after saving
     } catch (error) {
-        console.error("Feil ved lagring av guide:", error);
-        res.status(500).json({ message: "Feil ved lagring av guide" });
+        console.error("Error saving guide:", error);
+        res.status(500).json({ message: "Error saving guide" });
     }
 });
+// Delete Guide Route
+app.post("/guide/:id/edit", upload.single("bilde"), async (req, res) => {
+    const { id } = req.params;
+    const { tittel, beskrivelse } = req.body;
+
+    try {
+        // Fetch the existing guide
+        const guide = await Guide.findById(id);
+        if (!guide) {
+            return res.status(404).send("Guide not found");
+        }
+
+        // If a new image is uploaded, save the filename
+        let bilde = guide.bilde; // Use the old image by default
+        if (req.file) {
+            bilde = req.file.filename; // Use the new uploaded image
+        }
+
+        // Update the guide with new data
+        await Guide.findByIdAndUpdate(id, { tittel, beskrivelse, bilde });
+
+        // Redirect to the updated guide
+        res.redirect(`/guide/${id}`);
+    } catch (error) {
+        console.error("Error updating guide:", error);
+        res.status(500).send("Error updating guide.");
+    }
+});
+
 
 // let logget = false;
 
@@ -326,40 +374,71 @@ app.post("/create", async (req, res) => {
 // });
 app.post("/login", async (req, res) => {
     const { brukernavn, password } = req.body;
-    User.findOne({email: brukernavn}).then((user) => {
-        console.log("result", user);
-        
-        bcrypt.compare(password, user.password).then(() => {
-            req.session.user = { name: user.email };
-            res.status(200).redirect("/dashboard");
-            
-          }).catch((error) => {
-              
-              console.log("Error", error)
-              return res.status(400).json({ message: "Invalid password" });
-          })
-          
-          
-      });
-  
-  });
 
+    // Søk etter brukeren basert på email (brukernavn)
+    User.findOne({ email: brukernavn }).then((user) => {
+        if (!user) {
+            // // Hvis bruker ikke finnes, returner feil
+            // return res.status(400).json({ message: "User not found" });
+            return res.status(400).redirect("/login");
+        }
 
+        // Hvis bruker finnes, sammenlign passordet
+        bcrypt.compare(password, user.password).then((isMatch) => {
+            if (isMatch) {
+                // Hvis passordet stemmer, sett brukeren i session og redirect
+                req.session.user = { name: user.email };
+                return res.status(200).redirect("/dashboard");
+            } else {
+                // Hvis passordet ikke stemmer, returner feil
+                // return res.status(400).json({ message: "Invalid password" });
+                return res.status(400).redirect("/login");
+            }
+        }).catch((error) => {
+            console.log("Error", error);
+            // return res.status(500).json({ message: "An error occurred while comparing passwords" });
+            return res.status(500).redirect("/login");
+        });
 
-app.get("/search", (req, res) => {
-  const query = req.query.query;
-  console.log("Search query:", query);
-
-  let isloggedin=false;
-
-  if(req.session.user){
-    isloggedin=true;
-  }
-
-
-  res.render("guide", { isloggedin });
-  // res.send(`You searched for: ${query}`);
+    }).catch((error) => {
+        console.log("Error", error);
+        // return res.status(500).json({ message: "An error occurred while finding the user" });
+        return res.status(500).redirect("/login");
+    });
 });
+app.get("/search", async (req, res) => {
+    const searchTerm = req.query.query;
+    console.log("Search query:", searchTerm);
+let isloggedin;
+    if(req.session.user){
+        isloggedin=true;
+      }
+    
+
+    try {
+        const matchingGuides = await Guide.find({ 
+              $or: [
+                { tittel: { $regex: new RegExp(searchTerm, "i") } }, // Search in title
+                { beskrivelse: { $regex: new RegExp(searchTerm, "i") } } // Search in description
+            ]
+        });
+
+        if (matchingGuides.length > 0) {
+            const guides = matchingGuides;  // If there's a match, get the first guide
+            // const guide = matchingGuides[0];  // If there's a match, get the first guide
+            // Redirect to the guide's page by its ID
+            res.render("index", { guides, isloggedin });
+        } else {
+            // No matches found
+            res.status(404).send("No matching guides found.");
+        }
+    } catch (error) {
+        console.error("Error during search:", error);
+        res.status(500).send("An error occurred during the search.");
+    }
+});
+
+
 
 
 app.listen(process.env.PORT || 4000, () => {

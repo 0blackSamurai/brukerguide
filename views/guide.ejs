@@ -1,43 +1,69 @@
-
 <%- include("./partials/header") %>
+
 <body>
     <div class="parent">
-        <div class="background1">
-            <a href="/"> <h1>tilbake</h1></a>
-            <!-- <a class="tittels" href="#"><p>tittel1</p></a> -->
-            <% guides.forEach((guide, index) => { %>
-                <a class="tittels" href="#guide<%= index + 1 %>">
-                    <p><%= guide.tittel %></p>
-                </a>
-            <% }); %>
+        <div class="Navguide">
+            <a href="/"> <h1>Tilbake</h1></a>
+            <% if (isloggedin){ %>
+                <a href="/dashboard"><h2>Profile</h2></a>
+            <% } else { %>
+                <a href="/login"><h2>Logg inn</h2></a>
+            <% } %>
         </div>
         <div class="background">
-            <div class="links">
-               <% if (isloggedin){ %>
-                <a href="/dashboard">profile</a>
-               <%} else{ %>
-                    <a href="/login">Logg inn</a>
-               <%}%>
-            </div>
             <h1>Guide til Verden</h1>
-           
-            <% if (guides.length > 0) { %>
-                <div class="guides-container"> <!-- Optional: a container for all guides -->
-                    <% guides.forEach((guide, index) => { %>
-                        <div id="guide<%= index + 1 %>" class="texton"> <!-- Unique ID for each guide -->
-                            <h2><%= guide.tittel %></h2>
-                            <p><%= guide.beskrivelse %></p>
-                            <% if (guide.bilde) { %>
-                                <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" />
-                            <% } %>
-                        </div>
-                    <% }) %>
+            <div class="guides-container">
+                <div id="guide<%= guide._id %>" class="texton">
+                    <h2><%= guide.tittel %></h2>
+                    <p><%= guide.beskrivelse %></p>
+
+                    <% if (guide.bilde) { %>
+                        <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" class="bilder"/>
+                    <% } %>
+
+                    <% if (isloggedin) { %>
+                        <button class="editButton" data-id="<%= guide._id %>">Rediger</button>
+                        <button class="saveButton" data-id="<%= guide._id %>" style="display:none;">Lagre</button>
+                        <form action="/guide/<%= guide._id %>/delete" method="POST" onsubmit="return confirm('Er du sikker på at du vil slette denne guiden?');" style="display:inline;">
+                            <button type="submit" class="deleteButton">Slett</button>
+                        </form>
+                    <% } %>
                 </div>
-            <% } else { %>
-                <p>Ingen guider tilgjengelig.</p>
-            <% } %>
             </div>
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll(".editButton").forEach(button => {
+            button.addEventListener("click", function() {
+                const guideId = button.getAttribute("data-id");
+                const textDiv = document.querySelector(`#guide${guideId}`);
+
+                const titleElement = textDiv.querySelector("h2");
+                const descriptionElement = textDiv.querySelector("p");
+                const imgElement = textDiv.querySelector("img");
+
+                if (titleElement && descriptionElement) {
+                    const title = titleElement.textContent;
+                    const description = descriptionElement.textContent;
+                    const imgSrc = imgElement ? imgElement.src : "";
+
+                    textDiv.innerHTML = `
+                        <form action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
+                            <input type="text" name="tittel" value="${title}" required/>
+                            <textarea name="beskrivelse" required>${description}</textarea>
+                            
+                            <label for="bilde">Velg nytt bilde (valgfritt):</label>
+                            <input type="file" name="bilde" accept="image/*"/>
+                            
+                            <button type="submit">Lagre endringer</button>
+                        </form>
+                    `;
+                } else {
+                    console.error("Title or description element not found.");
+                }
+            });
+        });
+    </script>
 </body>
 </html>

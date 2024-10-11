@@ -1,64 +1,113 @@
 <%- include("./partials/header") %>
 <body>
     <form action="" method="post" enctype="multipart/form-data">
-        <!-- e -->
-            <h1 class="midden1">ny guide</h1>
-            <a href="./dashboard" class="tilbake1"><h2>Tilbake</h2></a>
+        <h1 class="midden1">ny guide</h1>
+        <a href="./dashboard" class="tilbake1"><h2>Tilbake</h2></a>
         <div class="den">
             <div class="midden">
-
                 <h3>tittel</h3>
-                <input type="text" placeholder="tittel">
+                <input type="text" placeholder="tittel" name="tittel" required>
             </div>
-                <div class="midden">
+            <div class="midden">
                 <h3>tag</h3>
-                <input type="text" placeholder="tittel">
+                <input type="text" placeholder="tag" name="tag" required>
             </div>
             <div class="seksjons"> 
                 <div id="addNewsection">
-
                     <h2 class="midden">seksjon</h2>
                     <div class="midden">
                         <h3>overskrift</h3>
-                        <input type="text" placeholder="tittel" name="tittel" required>
+                        <input type="text" placeholder="overskrift" name="overskrift" required>
                     </div>
                     <div class="midden">
-                        <h3>beskrivle</h3>
-                        <input type="text" placeholder="tittel" name="beskrivelse" required>
+                        <h3>beskrivelse</h3>
+                        <input type="text" placeholder="beskrivelse" name="beskrivelse" required>
+                    </div>
+                    <h4>bilde</h4>
+                    <div class="file-upload">
+                        <input type="file" name="bilde" id="fileInput" accept="image/png, image/jpeg, image/jpg" required>
+                        <div id="dropArea" class="drop-area">
+                            <p>Drag & drop your image here</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="middle">send inn</button>
             </div>
-            <h4>bilde</h4>
-            <input type="file" name="bilde" id="" accept="image/png image/jpeg image/jpg" required>
-            
         </div>
-        <button class="middle">send inn</button>
-    </div>
-    </div>
-</form>
-<button onclick="lagNySeksjon()" class="LagSeksjon">lag ny seksjon</button>
-<script>
-    function lagNySeksjon() {
-        //  let addNewsection = document.getElementById("addNewsection")
-        let newSection = document.querySelector("#addNewsection")
-        newSection.innerHTML += `
-             <div class="seksjons"> 
-        <div id="addNewsection">
-            
-            <h2>seksjon</h2>
-            <div class="midden">
-                <h3>overskrift</h3>
-                <input type="text" placeholder="tittel">
-            </div>
-            <div class="midden">
-                <h3>beskrivle</h3>
-                <input type="text" placeholder="tittel">
-            </div>
-            <h4>bilde</h4>
-            <input type="file" name="bilde" id="">
-            
-        </div>
-</div>
-    `
-}
+    </form>
+    <button onclick="lagNySeksjon()" class="LagSeksjon">lag ny seksjon</button>
+    <script>
+        // Handle drag-and-drop functionality
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+
+        // Prevent default behaviors for drag events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false); 
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight the drop area when dragging files over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
+        });
+
+        // Handle file dropping
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            handleFiles(files);
+        }
+
+        // Handle files from input and drop
+        function handleFiles(files) {
+            const file = files[0]; // Get the first file
+
+            if (file) {
+                const fileName = document.createElement('p');
+                fileName.innerText = file.name; // Display the file name
+                dropArea.appendChild(fileName); // Show file name in drop area
+                fileInput.files = files; // Update the input field
+            }
+        }
+
+        // Function to create a new section
+        function lagNySeksjon() {
+            let newSection = document.querySelector("#addNewsection");
+            newSection.innerHTML += `
+                <div class="seksjons"> 
+                    <h2>seksjon</h2>
+                    <div class="midden">
+                        <h3>overskrift</h3>
+                        <input type="text" placeholder="overskrift" name="overskrift" required>
+                    </div>
+                    <div class="midden">
+                        <h3>beskrivelse</h3>
+                        <input type="text" placeholder="beskrivelse" name="beskrivelse" required>
+                    </div>
+                    <h4>bilde</h4>
+                    <div class="file-upload">
+                        <input type="file" name="bilde" id="fileInput" accept="image/png, image/jpeg, image/jpg" required>
+                        <div id="dropArea" class="drop-area">
+                            <p>Drag & drop your image here</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     </script>
+   
 </body>
 </html>

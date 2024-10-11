@@ -1,34 +1,31 @@
 <%- include("./partials/header") %>
 <body>
     <%- include("./partials/nav") %>
-    <!-- <nav>
-        <img class="logo" src="/logodesk.png" alt="">
-        <div class="links">
-            <a href="">guide</a>
-            <a href="">logg inn</a>
-        </div>
-    </nav> -->
-    <!-- how to start mongodb is sudo systemctl start mongod then sudo systemctl status mongod then npm start :)-->
+
     <div class="search-bar">
+        <!-- Form for the search functionality -->
         <form action="/search" method="GET">
             <input type="text" name="query" class="search-input" placeholder="Search here" required>
         </form>
     </div>
+
     <div class="allebox">
-        
-        <% guides.forEach((guide, index) => { %>
-            <a class="din" href="/guide#guide<%= guide.id %>">
-                <div class="boxes"><%= guide.tittel %></div>
-            </a>
-        <% }); %>
+        <% if (guides.length > 0) { %>
+            <% guides.forEach((guide, index) => { %>
+                <a class="din" href="/guide/<%= guide._id %>">
+                    <div class="boxes"><%= guide.tittel %>
+                    
+                        <% if (guide.bilde) { %>
+                            <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" class="bilden"/>
+                        <% } %>
+                    </div>
+                </a>
+            <% }); %>
+        <% } else { %>
+            <p>No results found for "<%= query %>".</p>
+        <% } %>
     </div>
     
-    <!-- <% guides.forEach((guide) => { %>
-        <div id="guide<%= guide.id %>" class="texton">  Unique ID for each guide -->
-            <!-- <h2><%= guide.tittel %></h2> -->
-            <!-- Legg til mer innhold for guiden her -->
-        </div>
-    <!-- <% }); %> --> 
-    
+        
 </body>
 </html>

@@ -27,8 +27,13 @@
     <div class="allebox">
         
         <% guides.forEach((guide, index) => { %>
-            <a class="din" href="/guide#guide<%= guide.id %>">
-                <div class="boxes"><%= guide.tittel %></div>
+            <a class="din" href="/guide/<%= guide.id %>">
+                <div class="boxes"><%= guide.tittel %>
+                
+                    <% if (guide.bilde) { %>
+                        <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" class="bilden"/>
+                    <% } %>
+                </div>
             </a>
         <% }); %>
     </div>

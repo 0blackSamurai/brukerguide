@@ -5,23 +5,27 @@
         <div class="Navguide">
             <a href="/"> <h1>Tilbake</h1></a>
             <% if (isloggedin){ %>
-                <a href="/dashboard"><h2>Profile</h2></a>
+                <a href="/dashborad"><h2>Profile</h2></a>
             <% } else { %>
                 <a href="/login"><h2>Logg inn</h2></a>
             <% } %>
         </div>
         <div class="background">
-            <h1>Guide til Verden</h1>
+            <h1 class="tittle-class"><%= guide.tittel %></h1>
+            <p class="tag-class"><%= guide.tag %></p>
             <div class="guides-container">
                 <div id="guide<%= guide._id %>" class="texton">
-                    <h2><%= guide.tittel %></h2>
-                    <p><%= guide.beskrivelse %></p>
-
+                    <h2 class="header-class"><%= guide.overskrift %></h2>
+                    <p  class="description-class"><%= guide.beskrivelse %></p>
+                
                     <% if (guide.bilde) { %>
                         <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" class="bilder"/>
                     <% } %>
+                
+                    <p>Created by: <%= guide.creator ? guide.creator.email : 'Unknown' %></p>
 
-                    <% if (isloggedin) { %>
+                    <% if (isloggedin && guide.creator && guide.creator._id && user && user._id && guide.creator._id.toString() === user._id.toString()) { %>
+                        <!-- Edit button for logged-in creator -->
                         <button class="editButton" data-id="<%= guide._id %>">Rediger</button>
                         <button class="saveButton" data-id="<%= guide._id %>" style="display:none;">Lagre</button>
                         <form action="/guide/<%= guide._id %>/delete" method="POST" onsubmit="return confirm('Er du sikker på at du vil slette denne guiden?');" style="display:inline;">
@@ -32,25 +36,38 @@
             </div>
         </div>
     </div>
-
+    
     <script>
         document.querySelectorAll(".editButton").forEach(button => {
             button.addEventListener("click", function() {
                 const guideId = button.getAttribute("data-id");
                 const textDiv = document.querySelector(`#guide${guideId}`);
-
+                
                 const titleElement = textDiv.querySelector("h2");
-                const descriptionElement = textDiv.querySelector("p");
+                const tagElement = textDiv.querySelector("p");
+                const headerElement = textDiv.querySelector("h2");
+                const descriptionElement = textDiv.querySelector("p:nth-of-type(1)");
                 const imgElement = textDiv.querySelector("img");
+                console.log("Title Element:", titleElement);
+                console.log("Tag Element:", tagElement);
+                console.log("Header Element:", headerElement);
+                console.log("Description Element:", descriptionElement);
+                console.log("Image Element:", imgElement);
 
-                if (titleElement && descriptionElement) {
+
+                if (titleElement && tagElement && headerElement && descriptionElement) {
                     const title = titleElement.textContent;
+                    const tag = tagElement.textContent;
+                    const header = headerElement.textContent;
                     const description = descriptionElement.textContent;
                     const imgSrc = imgElement ? imgElement.src : "";
 
                     textDiv.innerHTML = `
                         <form action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
+                            
                             <input type="text" name="tittel" value="${title}" required/>
+                            <input type="text" name="tag" value="${tag}" required/>
+                            <input type="text" name="overskrift" value="${header}" required/>
                             <textarea name="beskrivelse" required>${description}</textarea>
                             
                             <label for="bilde">Velg nytt bilde (valgfritt):</label>
@@ -60,7 +77,7 @@
                         </form>
                     `;
                 } else {
-                    console.error("Title or description element not found.");
+                    console.error("Elements not found.");
                 }
             });
         });

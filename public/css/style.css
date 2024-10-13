@@ -68,7 +68,7 @@ nav {
 }
 .boxes:hover {
         transform: scale(1.2); /* Scale up */
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        box-shadow:  4px 3px 1px  rgba(0, 0, 0, 0.2);
 }
 
 .search-input {
@@ -107,6 +107,7 @@ nav {
     transition: transform 0.3s ease;
     align-items: center;
     flex-direction: column;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 .allebox {
     display: flex;

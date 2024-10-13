@@ -89,6 +89,7 @@ const { stringify } = require("querystring");
 const session = require("express-session");
 
 
+
 app.use(
     session({
       secret: process.env.SESSION_SECRET || "passord1", // Replace with a strong secret key
@@ -193,7 +194,8 @@ const guideSchema = new mongoose.Schema({
     tag: String,
     overskrift: String,
     beskrivelse: String,
-    bilde: String
+    bilde: String,
+    creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  // Reference to User model
 });
 
 
@@ -202,7 +204,18 @@ const guideSchema = new mongoose.Schema({
 // });
 app.get("/guide/:id", async (req, res) => { 
     const { id } = req.params;
-    const guide = await Guide.findById(id);
+    
+    // Populate the creator field with user details
+    const guide = await Guide.findById(id).populate('creator', 'email');
+    const guideSchema = new mongoose.Schema({
+        tittel: String,
+        tag: String,
+        overskrift: String,
+        beskrivelse: String,
+        bilde: String,
+        creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  // Reference to User model
+    });
+
     let isloggedin = false;
     let user = null;
 
@@ -245,10 +258,33 @@ app.get("/login", (req, res) => {
 
 });
 
-app.get("/dashboard", async (req, res) => {
-    const guides = await Guide.find();
-    res.render("dashborad", {guides}); 
+app.get("/dashborad", async (req, res) => {
+    if (!req.session.user) {
+        return res.redirect("/login");  // Redirect if the user is not logged in
+    }
+
+    const userId = req.session.user._id;  // Access user ID from session
+
+    // Fetch user-specific guides or other personalized content
+    const guides = await Guide.find({ creator: userId });  // Example query to get user-specific data
+
+    res.render("dashborad", { guides, user: req.session.user });  // Pass the user and guides to the dashboard view
 });
+// Middleware to check if the user is logged in
+function isAuthenticated(req, res, next) {
+    if (req.session.user) {
+        return next();
+    }
+    res.redirect("/login");  // Redirect to login if not authenticated
+}
+
+app.get("/dashborad", isAuthenticated, async (req, res) => {
+    const userId = req.session.user._id;  // Access user ID from session
+    const guides = await Guide.find({ creator: userId });
+
+    res.render("dashborad", { guides, user: req.session.user });
+});
+
 app.get("/ny_guide", (req, res) => {
     res.render("ny_guide"); 
 });
@@ -260,6 +296,10 @@ const Guide = mongoose.model("Guide", guideSchema);
 app.post("/ny_guide", upload.single("bilde"), async (req, res) => {
     const { tittel, tag, overskrift, beskrivelse } = req.body;
     const bilde = req.file ? req.file.filename : ""; // Save image filename if uploaded
+
+    if (!req.session.user) {
+        return res.status(403).send("You must be logged in to create a guide.");
+    }
 
     // Create new guide with the logged-in user's ID as the creator
     const newGuide = new Guide({ 
@@ -279,10 +319,11 @@ app.post("/ny_guide", upload.single("bilde"), async (req, res) => {
         res.status(500).json({ message: "Error saving guide" });
     }
 });
+
 // Delete Guide Route
 app.post("/guide/:id/edit", upload.single("bilde"), async (req, res) => {
     const { id } = req.params;
-    const { tittel, beskrivelse } = req.body;
+    const { tittel, tag, overskrift, beskrivelse } = req.body;
 
     try {
         // Fetch the existing guide
@@ -297,8 +338,14 @@ app.post("/guide/:id/edit", upload.single("bilde"), async (req, res) => {
             bilde = req.file.filename; // Use the new uploaded image
         }
 
-        // Update the guide with new data
-        await Guide.findByIdAndUpdate(id, { tittel, beskrivelse, bilde });
+        // Update the guide with new data, including tag and overskrift
+        await Guide.findByIdAndUpdate(id, { 
+            tittel, 
+            tag, 
+            overskrift, 
+            beskrivelse, 
+            bilde 
+        });
 
         // Redirect to the updated guide
         res.redirect(`/guide/${id}`);
@@ -313,12 +360,12 @@ app.post("/guide/:id/edit", upload.single("bilde"), async (req, res) => {
 
 app.get("/logout", (req, res) => {
     req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).send("Could not log out.");
-      }
-      res.redirect("/login"); // Redirect to login page after logout
+        if (err) {
+            return res.status(500).send("Could not log out.");
+        }
+        res.redirect("/login");  // Redirect to login page after logout
     });
-  });
+});
 
 app.post("/create", async (req, res) => {
     const { brukernavn, password, confirmpassword } = req.body;
@@ -338,7 +385,7 @@ app.post("/create", async (req, res) => {
                 
                 if (result._id) {
                     req.session.user = { name: newUser.email}
-                    res.redirect("/dashboard");
+                    res.redirect("/dashborad");
                 }
             } catch (err) {
                 console.error(err);
@@ -375,37 +422,35 @@ app.post("/create", async (req, res) => {
 app.post("/login", async (req, res) => {
     const { brukernavn, password } = req.body;
 
-    // Søk etter brukeren basert på email (brukernavn)
+    // Find user by email (brukernavn)
     User.findOne({ email: brukernavn }).then((user) => {
         if (!user) {
-            // // Hvis bruker ikke finnes, returner feil
-            // return res.status(400).json({ message: "User not found" });
+            // If user is not found, redirect to login with an error message
             return res.status(400).redirect("/login");
         }
 
-        // Hvis bruker finnes, sammenlign passordet
+        // If user is found, compare passwords
         bcrypt.compare(password, user.password).then((isMatch) => {
             if (isMatch) {
-                // Hvis passordet stemmer, sett brukeren i session og redirect
-                req.session.user = { name: user.email };
-                return res.status(200).redirect("/dashboard");
+                // If password matches, save the user ID in the session
+                req.session.user = { _id: user._id, email: user.email };
+                
+                // Redirect to the dashboard after successful login
+                return res.status(200).redirect("/dashborad");
             } else {
-                // Hvis passordet ikke stemmer, returner feil
-                // return res.status(400).json({ message: "Invalid password" });
+                // If password doesn't match, redirect to login
                 return res.status(400).redirect("/login");
             }
         }).catch((error) => {
-            console.log("Error", error);
-            // return res.status(500).json({ message: "An error occurred while comparing passwords" });
+            console.log("Error comparing passwords:", error);
             return res.status(500).redirect("/login");
         });
-
     }).catch((error) => {
-        console.log("Error", error);
-        // return res.status(500).json({ message: "An error occurred while finding the user" });
+        console.log("Error finding user:", error);
         return res.status(500).redirect("/login");
     });
 });
+
 app.get("/search", async (req, res) => {
     const searchTerm = req.query.query;
     console.log("Search query:", searchTerm);

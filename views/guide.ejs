@@ -11,12 +11,14 @@
             <% } %>
         </div>
         <div class="background">
-            <h1 class="tittle-class"><%= guide.tittel %></h1>
-            <p class="tag-class"><%= guide.tag %></p>
-            <div class="guides-container">
-                <div id="guide<%= guide._id %>" class="texton">
+            <div id="guide<%= guide._id %>" class="guides-container">
+                <h1 class="tittle-class"><%= guide.tittel %></h1>
+                <p class="tag-class"><%= guide.tag %></p>
+                <div  class="texton">
+                    <!-- <h1 class="tittle-class"><%= guide.tittel %></h1>
+                    <p class="tag-class"><%= guide.tag %></p> -->
                     <h2 class="header-class"><%= guide.overskrift %></h2>
-                    <p  class="description-class"><%= guide.beskrivelse %></p>
+                    <p2  class="description-class"><%= guide.beskrivelse %></p2>
                 
                     <% if (guide.bilde) { %>
                         <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" class="bilder"/>
@@ -43,10 +45,10 @@
                 const guideId = button.getAttribute("data-id");
                 const textDiv = document.querySelector(`#guide${guideId}`);
                 
-                const titleElement = textDiv.querySelector("h2");
+                const titleElement = textDiv.querySelector("h1");
                 const tagElement = textDiv.querySelector("p");
                 const headerElement = textDiv.querySelector("h2");
-                const descriptionElement = textDiv.querySelector("p:nth-of-type(1)");
+                const descriptionElement = textDiv.querySelector("p2");
                 const imgElement = textDiv.querySelector("img");
                 console.log("Title Element:", titleElement);
                 console.log("Tag Element:", tagElement);
@@ -64,7 +66,8 @@
 
                     textDiv.innerHTML = `
                         <form action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
-                            
+                        
+                             <div  class="texton2">
                             <input type="text" name="tittel" value="${title}" required/>
                             <input type="text" name="tag" value="${tag}" required/>
                             <input type="text" name="overskrift" value="${header}" required/>
@@ -74,6 +77,7 @@
                             <input type="file" name="bilde" accept="image/*"/>
                             
                             <button type="submit">Lagre endringer</button>
+                            </div>
                         </form>
                     `;
                 } else {

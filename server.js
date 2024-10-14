@@ -321,37 +321,16 @@ app.post("/ny_guide", upload.single("bilde"), async (req, res) => {
 });
 
 // Delete Guide Route
-app.post("/guide/:id/edit", upload.single("bilde"), async (req, res) => {
+// Delete Guide Route
+app.post("/guide/:id/delete", async (req, res) => {
     const { id } = req.params;
-    const { tittel, tag, overskrift, beskrivelse } = req.body;
 
     try {
-        // Fetch the existing guide
-        const guide = await Guide.findById(id);
-        if (!guide) {
-            return res.status(404).send("Guide not found");
-        }
-
-        // If a new image is uploaded, save the filename
-        let bilde = guide.bilde; // Use the old image by default
-        if (req.file) {
-            bilde = req.file.filename; // Use the new uploaded image
-        }
-
-        // Update the guide with new data, including tag and overskrift
-        await Guide.findByIdAndUpdate(id, { 
-            tittel, 
-            tag, 
-            overskrift, 
-            beskrivelse, 
-            bilde 
-        });
-
-        // Redirect to the updated guide
-        res.redirect(`/guide/${id}`);
+        await Guide.findByIdAndDelete(id);
+        res.redirect("/");
     } catch (error) {
-        console.error("Error updating guide:", error);
-        res.status(500).send("Error updating guide.");
+        console.error("Error deleting guide:", error);
+        res.status(500).send("Error deleting guide.");
     }
 });
 

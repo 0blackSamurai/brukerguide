@@ -224,6 +224,17 @@ nav {
     width: 70%;
     flex-direction: column;
 }
+.texton2 {
+    display: flex;
+    padding-bottom: 50px;
+    background-color: var(--primary-color);
+    border-radius: 20px;
+    border: 1px solid black;
+    align-items: center ;
+    justify-content: center;
+    width: 100%;
+    flex-direction: column;
+}
 .bilder{
     max-width: 300px;
     max-height: 300px;

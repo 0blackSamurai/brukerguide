@@ -116,7 +116,7 @@ const diskstorage = multer.diskStorage({destination: function(req, file, cb) {
         //     return cb(new Error("only PNG files allowed, love you martin"))
 
         // }
-        const filename = path.originalname + ".png"
+        const filename = file.originalname
         cb(null, filename)
     }
     //  filename: function(req, file, cb{
@@ -194,9 +194,10 @@ const guideSchema = new mongoose.Schema({
     tag: String,
     overskrift: String,
     beskrivelse: String,
-    bilde: String,
-    creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  // Reference to User model
+    bilde: [String], // Keep this as an array of strings
+    creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  
 });
+
 
 
 // app.get("/guide", (req, res) => {
@@ -212,7 +213,7 @@ app.get("/guide/:id", async (req, res) => {
         tag: String,
         overskrift: String,
         beskrivelse: String,
-        bilde: String,
+        bilde: [String],
         creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  // Reference to User model
     });
 
@@ -293,32 +294,41 @@ const Guide = mongoose.model("Guide", guideSchema);
 //     console.log(req.body)
 //     console.log(req.file, "FILE")
 // })
-app.post("/ny_guide", upload.single("bilde"), async (req, res) => {
-    const { tittel, tag, overskrift, beskrivelse } = req.body;
-    const bilde = req.file ? req.file.filename : ""; // Save image filename if uploaded
 
-    if (!req.session.user) {
+app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
+    const { tittel, tag, overskrift, beskrivelse } = req.body;
+
+    // Ensure user is authenticated
+    if (!req.session.user || !req.session.user._id) {
         return res.status(403).send("You must be logged in to create a guide.");
     }
 
-    // Create new guide with the logged-in user's ID as the creator
-    const newGuide = new Guide({ 
-        tittel, 
-        tag, 
-        overskrift, 
-        beskrivelse, 
-        bilde, 
-        creator: req.session.user._id  // Store creator's ID
+    // Convert overskrift and beskrivelse to arrays if they are coming in as strings
+    const overskrifter = Array.isArray(overskrift) ? overskrift : [overskrift];
+    const beskrivelser = Array.isArray(beskrivelse) ? beskrivelse : [beskrivelse];
+    const bilde = req.files.map(file => file.filename); // Get filenames of uploaded images
+
+    // Create the new guide instance
+    const newGuide = new Guide({
+        tittel,
+        tag,
+        overskrifter, // Store as an array of strings
+        beskrivelser, // Store as an array of strings
+        bilde, // Store an array of image filenames
+        creator: req.session.user._id  
     });
 
     try {
         await newGuide.save();
-        res.redirect(`/guide/${newGuide._id}`);  // Redirect to guide page after saving
+        res.redirect(`/guide/${newGuide._id}`);
     } catch (error) {
         console.error("Error saving guide:", error);
-        res.status(500).json({ message: "Error saving guide" });
+        res.status(500).json({ message: "Error saving guide", error });
     }
 });
+
+
+
 
 // Delete Guide Route
 // Delete Guide Route

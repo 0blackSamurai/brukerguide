@@ -197,29 +197,31 @@
 
         // Function to create a new section
         function lagNySeksjon() {
-            let newSection = document.querySelector("#addNewsection");
-            newSection.innerHTML += `
-                <div class="seksjons"> 
-                    <h2>seksjon</h2>
-                    <div class="midden">
-                        <h3>overskrift</h3>
-                        <input type="text" placeholder="overskrift" name="overskrift" required>
-                    </div>
-                    <div class="midden">
-                        <h3>beskrivelse</h3>
-                        <input type="text" placeholder="beskrivelse" name="beskrivelse" required>
-                    </div>
-                    <h4>bilde</h4>
-                    <div class="file-upload">
-                        <input type="file" name="bilde" id="fileInput" accept="image/png, image/jpeg, image/jpg" required>
-                        <div id="dropArea" class="drop-area">
-                            <p>Drag & drop your image here</p>
-                        </div>
-                    </div>
+    let newSection = document.querySelector("#addNewsection");
+    newSection.innerHTML += `
+        <div class="seksjons"> 
+            <h2>seksjon</h2>
+            <div class="midden">
+                <h3>overskrift</h3>
+                <input type="text" placeholder="overskrift" name="overskrift" required>
+            </div>
+            <div class="midden">
+                <h3>beskrivelse</h3>
+                <input type="text" placeholder="beskrivelse" name="beskrivelse" required>
+            </div>
+            <h4>bilde</h4>
+            <div class="file-upload">
+                <input type="file" name="bilde" id="fileInput" accept="image/png, image/jpeg, image/jpg" required>
+                <div id="dropArea" class="drop-area">
+                    <p>Drag & drop your image here</p>
                 </div>
-            `;
-        }
-    </script>
+            </div>
+        </div>
+    `;
+}
+
+
+    // </script>
    
 </body>
 </html>

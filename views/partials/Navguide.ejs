@@ -1,0 +1,8 @@
+<nav>
+    <a href="/"> <h1>Tilbake</h1></a>
+    <% if (isloggedin){ %>
+        <a href="/dashboard"><h1>Profile</h1></a>
+       <%} else{ %>
+            <a href="/login"><h1>Logg inn</h1></a>
+       <%}%>
+</nav>

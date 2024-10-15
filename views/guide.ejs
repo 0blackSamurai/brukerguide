@@ -82,48 +82,47 @@
     
                             <!-- Edit existing headers and descriptions -->
                             <div id="sections">
-                                ${headers.map((header, index) => `
-                                    <div class="section">
-                                        <label for="overskrift${index}">Header ${index + 1}:</label>
-                                        <input type="text" name="overskrift" value="${header}" required/>
-    
-                                        <label for="beskrivelse${index}">Description ${index + 1}:</label>
-                                        <textarea name="beskrivelse" required>${descriptions[index]}</textarea>
-    
-                                        <p>Bilde ${index + 1}: ${images[index]}</p>
-                                        <label for="bilde${index}">Velg fil:</label>
-                                        <input type="file" name="bilde" accept="image/*"/>
-                                    </div>
-                                `).join('')}
-                            </div>
-    
-                            <!-- Button to add one more header, description, and image -->
-                            <button type="button" id="addSection">Legg til ny seksjon</button>
+    ${headers.map((header, index) => `
+        <div class="section">
+            <label for="overskrift${index}">Header ${index + 1}:</label>
+            <input type="text" name="overskrift" value="${header}" required/>
+            
+            <label for="beskrivelse${index}">Description ${index + 1}:</label>
+            <textarea name="beskrivelse" required>${descriptions[index]}</textarea>
+            
+            <p>Bilde ${index + 1}: ${images[index]}</p>
+            <label for="bilde${index}">Velg fil:</label>
+            <input type="file" name="bilde" accept="image/*"/> <!-- This is where the user can upload a new image -->
+            <input type="hidden" name="oldBilde" value="${images[index]}"/> <!-- Keep track of the old image filename -->
+        </div>
+    `).join('')}
+</div>
+
+                
     
                             <button type="submit">Lagre endringer</button>
                         </div>
                     </form>
                 `;
     
-                // Add functionality to add new sections
-                document.getElementById("addSection").addEventListener("click", function () {
-                    const sectionsDiv = document.getElementById("sections");
-                    const newIndex = sectionsDiv.querySelectorAll(".section").length; // Get current number of sections
+                // // Add functionality to add new sections
+                // document.getElementById("addSection").addEventListener("click", function () {
+                //     const sectionsDiv = document.getElementById("sections");
+                //     const newIndex = sectionsDiv.querySelectorAll(".section").length; // Get current number of sections
     
-                    // Append new header, description, and file input
-                    sectionsDiv.insertAdjacentHTML('beforeend', `
-                        <div class="section">
-                            <label for="overskrift${newIndex}">Header ${newIndex + 1}:</label>
-                            <input type="text" name="overskrift" required/>
+                //     // Append new header, description, and file input
+                //     sectionsDiv.insertAdjacentHTML('beforeend', `
+                //         <div class="section">
+                //             <label for="overskrift${newIndex}">Header ${newIndex + 1}:</label>
+                //             <input type="text" name="overskrift" required/>
     
-                            <label for="beskrivelse${newIndex}">Description ${newIndex + 1}:</label>
-                            <textarea name="beskrivelse" required></textarea>
+                //             <label for="beskrivelse${newIndex}">Description ${newIndex + 1}:</label>
+                //             <textarea name="beskrivelse" required></textarea>
     
-                            <label for="bilde${newIndex}">Velg fil:</label>
-                            <input type="file" name="bilde" accept="image/*"/>
-                        </div>
-                    `);
-                });
+                //             <label for="bilde${newIndex}">Velg fil:</label>
+                //             <input type="file" name="bilde" accept="image/*"/>
+                //         </div>
+                //     `);
             });
         });
     </script>

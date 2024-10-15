@@ -294,7 +294,7 @@ const Guide = mongoose.model("Guide", guideSchema);
 //     console.log(req.file, "FILE")
 app.post("/guide/:id/edit", upload.array("bilde"), async (req, res) => {
     const { id } = req.params;
-    const { tittel, tag, overskrift, beskrivelse } = req.body;
+    const { tittel, tag, overskrift, beskrivelse, oldBilde } = req.body;
 
     try {
         // Fetch the existing guide
@@ -303,19 +303,26 @@ app.post("/guide/:id/edit", upload.array("bilde"), async (req, res) => {
             return res.status(404).send("Guide not found");
         }
 
-        // If a new image is uploaded, save the filename
-        let bilde = guide.bilde; // Use the old image by default
-        if (req.file) {
-            bilde = req.file.filename; // Use the new uploaded image
+        // Prepare the new images array, replacing old images with new uploads if any
+        let bilde = oldBilde; // Start with the old images
+
+        if (req.files && req.files.length > 0) {
+            // Loop through the uploaded files and replace the corresponding old image
+            req.files.forEach((file, index) => {
+                if (file && file.filename) {
+                    // Replace the image at the corresponding index
+                    bilde[index] = file.filename;
+                }
+            });
         }
 
-        // Update the guide with new data, including tag and overskrift
+        // Update the guide with the new data, including images
         await Guide.findByIdAndUpdate(id, { 
             tittel, 
             tag, 
             overskrift, 
             beskrivelse, 
-            bilde 
+            bilde, // Updated image array
         });
 
         // Redirect to the updated guide
@@ -325,6 +332,7 @@ app.post("/guide/:id/edit", upload.array("bilde"), async (req, res) => {
         res.status(500).send("Error updating guide.");
     }
 });
+
 // })
 
 app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
@@ -406,7 +414,7 @@ app.post("/create", async (req, res) => {
                 
                 if (result._id) {
                     req.session.user = { name: newUser.email}
-                    res.redirect("/dashboard");
+                    res.redirect("/dashborad");
                 }
             } catch (err) {
                 console.error(err);

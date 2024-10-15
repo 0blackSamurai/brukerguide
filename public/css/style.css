@@ -235,6 +235,13 @@ nav {
     width: 100%;
     flex-direction: column;
 }
+.sections {
+    display: flex;
+    flex-direction: row;
+    gap: 0px 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
 .bilder{
     max-width: 300px;
     max-height: 300px;
@@ -335,6 +342,7 @@ nav {
     background-color: var(--primary-color);
     width: 20%;
     align-items: center;
+    margin-top: 10px;
 }
 .midden input {
     width: 200px;

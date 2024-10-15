@@ -16,13 +16,13 @@
                     <div class="boxes"><%= guide.tittel %>
                     
                         <% if (guide.bilde) { %>
-                            <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" class="bilden"/>
+                            <img src="/uploads/<%= guide.bilde[0] %>" alt="Bilde for <%= guide.tittel %>" class="bilden"/>
                         <% } %>
                     </div>
                 </a>
             <% }); %>
         <% } else { %>
-            <p>No results found for "<%= query %>".</p>
+         
         <% } %>
     </div>
     

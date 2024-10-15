@@ -5,7 +5,7 @@
         <div class="Navguide">
             <a href="/"> <h1>Tilbake</h1></a>
             <% if (isloggedin){ %>
-                <a href="/dashborad"><h2>Profile</h2></a>
+                <a href="/dashboard"><h2>Profile</h2></a>
             <% } else { %>
                 <a href="/login"><h2>Logg inn</h2></a>
             <% } %>
@@ -14,16 +14,20 @@
             <div id="guide<%= guide._id %>" class="guides-container">
                 <h1 class="tittle-class"><%= guide.tittel %></h1>
                 <p class="tag-class"><%= guide.tag %></p>
-                <div  class="texton">
-                    <!-- <h1 class="tittle-class"><%= guide.tittel %></h1>
-                    <p class="tag-class"><%= guide.tag %></p> -->
-                    <h2 class="header-class"><%= guide.overskrift %></h2>
-                    <p2  class="description-class"><%= guide.beskrivelse %></p2>
-                
-                    <% if (guide.bilde) { %>
-                        <img src="/uploads/<%= guide.bilde %>" alt="Bilde for <%= guide.tittel %>" class="bilder"/>
+                <div class="texton">
+                    <% if (guide.overskrift && guide.beskrivelse && guide.bilde && guide.overskrift.length > 0) { %>
+                        <% for (let index = 0; index < guide.overskrift.length; index++) { %>
+                            <div>
+                                <h2><%= guide.overskrift[index] %></h2>
+                                <p><%= guide.beskrivelse[index] %></p>
+                                <img src="/uploads/<%= guide.bilde[index] %>" class="bilder" alt="Bilde <%= index + 1 %>">
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <p>There is no content to display</p>
                     <% } %>
-                
+                    
+
                     <p>Created by: <%= guide.creator ? guide.creator.email : 'Unknown' %></p>
 
                     <% if (isloggedin && guide.creator && guide.creator._id && user && user._id && guide.creator._id.toString() === user._id.toString()) { %>
@@ -38,53 +42,91 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         document.querySelectorAll(".editButton").forEach(button => {
-            button.addEventListener("click", function() {
+            button.addEventListener("click", function () {
                 const guideId = button.getAttribute("data-id");
                 const textDiv = document.querySelector(`#guide${guideId}`);
-                
+    
                 const titleElement = textDiv.querySelector("h1");
-                const tagElement = textDiv.querySelector("p");
-                const headerElement = textDiv.querySelector("h2");
-                const descriptionElement = textDiv.querySelector("p2");
-                const imgElement = textDiv.querySelector("img");
-                console.log("Title Element:", titleElement);
-                console.log("Tag Element:", tagElement);
-                console.log("Header Element:", headerElement);
-                console.log("Description Element:", descriptionElement);
-                console.log("Image Element:", imgElement);
-
-
-                if (titleElement && tagElement && headerElement && descriptionElement) {
-                    const title = titleElement.textContent;
-                    const tag = tagElement.textContent;
-                    const header = headerElement.textContent;
-                    const description = descriptionElement.textContent;
-                    const imgSrc = imgElement ? imgElement.src : "";
-
-                    textDiv.innerHTML = `
-                        <form action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
-                        
-                             <div  class="texton2">
+                const tagElement = textDiv.querySelector(".tag-class");
+                const headerElements = textDiv.querySelectorAll("h2");
+                const descriptionElements = textDiv.querySelectorAll("p:not(.tag-class):not(:last-child)"); // Adjust to match all paragraphs except the tag and last p
+                const imgElements = textDiv.querySelectorAll("img");
+    
+                let headers = [];
+                headerElements.forEach((header) => {
+                    headers.push(header.textContent); // Extract header value
+                });
+    
+                let descriptions = [];
+                descriptionElements.forEach((description) => {
+                    descriptions.push(description.textContent);
+                });
+    
+                let images = [];
+                imgElements.forEach((img) => {
+                    images.push(img.src.split('/uploads/')[1]); // Extract image filename from the path
+                });
+    
+                const title = titleElement.textContent;
+                const tag = tagElement.textContent;
+    
+                // Generate editable form
+                textDiv.innerHTML = `
+                    <form action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
+                        <div class="texton2">
                             <input type="text" name="tittel" value="${title}" required/>
                             <input type="text" name="tag" value="${tag}" required/>
-                            <input type="text" name="overskrift" value="${header}" required/>
-                            <textarea name="beskrivelse" required>${description}</textarea>
-                            
-                            <label for="bilde">Velg nytt bilde (valgfritt):</label>
-                            <input type="file" name="bilde" accept="image/*"/>
-                            
-                            <button type="submit">Lagre endringer</button>
+    
+                            <!-- Edit existing headers and descriptions -->
+                            <div id="sections">
+                                ${headers.map((header, index) => `
+                                    <div class="section">
+                                        <label for="overskrift${index}">Header ${index + 1}:</label>
+                                        <input type="text" name="overskrift" value="${header}" required/>
+    
+                                        <label for="beskrivelse${index}">Description ${index + 1}:</label>
+                                        <textarea name="beskrivelse" required>${descriptions[index]}</textarea>
+    
+                                        <p>Bilde ${index + 1}: ${images[index]}</p>
+                                        <label for="bilde${index}">Velg fil:</label>
+                                        <input type="file" name="bilde" accept="image/*"/>
+                                    </div>
+                                `).join('')}
                             </div>
-                        </form>
-                    `;
-                } else {
-                    console.error("Elements not found.");
-                }
+    
+                            <!-- Button to add one more header, description, and image -->
+                            <button type="button" id="addSection">Legg til ny seksjon</button>
+    
+                            <button type="submit">Lagre endringer</button>
+                        </div>
+                    </form>
+                `;
+    
+                // Add functionality to add new sections
+                document.getElementById("addSection").addEventListener("click", function () {
+                    const sectionsDiv = document.getElementById("sections");
+                    const newIndex = sectionsDiv.querySelectorAll(".section").length; // Get current number of sections
+    
+                    // Append new header, description, and file input
+                    sectionsDiv.insertAdjacentHTML('beforeend', `
+                        <div class="section">
+                            <label for="overskrift${newIndex}">Header ${newIndex + 1}:</label>
+                            <input type="text" name="overskrift" required/>
+    
+                            <label for="beskrivelse${newIndex}">Description ${newIndex + 1}:</label>
+                            <textarea name="beskrivelse" required></textarea>
+    
+                            <label for="bilde${newIndex}">Velg fil:</label>
+                            <input type="file" name="bilde" accept="image/*"/>
+                        </div>
+                    `);
+                });
             });
         });
     </script>
+    
 </body>
 </html>

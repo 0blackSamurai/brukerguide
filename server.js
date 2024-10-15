@@ -192,12 +192,11 @@ app.get("/searchResults", async (req, res) => {
 const guideSchema = new mongoose.Schema({
     tittel: String,
     tag: String,
-    overskrift: String,
-    beskrivelse: String,
+    overskrift: [String],
+    beskrivelse: [String],
     bilde: [String], // Keep this as an array of strings
     creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  
 });
-
 
 
 // app.get("/guide", (req, res) => {
@@ -211,8 +210,8 @@ app.get("/guide/:id", async (req, res) => {
     const guideSchema = new mongoose.Schema({
         tittel: String,
         tag: String,
-        overskrift: String,
-        beskrivelse: String,
+        overskrift: [String],
+        beskrivelse: [String],
         bilde: [String],
         creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  // Reference to User model
     });
@@ -265,10 +264,10 @@ app.get("/dashborad", async (req, res) => {
     }
 
     const userId = req.session.user._id;  // Access user ID from session
-
+    
     // Fetch user-specific guides or other personalized content
     const guides = await Guide.find({ creator: userId });  // Example query to get user-specific data
-
+    
     res.render("dashborad", { guides, user: req.session.user });  // Pass the user and guides to the dashboard view
 });
 // Middleware to check if the user is logged in
@@ -282,7 +281,7 @@ function isAuthenticated(req, res, next) {
 app.get("/dashborad", isAuthenticated, async (req, res) => {
     const userId = req.session.user._id;  // Access user ID from session
     const guides = await Guide.find({ creator: userId });
-
+    
     res.render("dashborad", { guides, user: req.session.user });
 });
 
@@ -293,6 +292,39 @@ const Guide = mongoose.model("Guide", guideSchema);
 // app.post("/ny_guide",uploads.single("bilde"),async (req, res )=> {
 //     console.log(req.body)
 //     console.log(req.file, "FILE")
+app.post("/guide/:id/edit", upload.array("bilde"), async (req, res) => {
+    const { id } = req.params;
+    const { tittel, tag, overskrift, beskrivelse } = req.body;
+
+    try {
+        // Fetch the existing guide
+        const guide = await Guide.findById(id);
+        if (!guide) {
+            return res.status(404).send("Guide not found");
+        }
+
+        // If a new image is uploaded, save the filename
+        let bilde = guide.bilde; // Use the old image by default
+        if (req.file) {
+            bilde = req.file.filename; // Use the new uploaded image
+        }
+
+        // Update the guide with new data, including tag and overskrift
+        await Guide.findByIdAndUpdate(id, { 
+            tittel, 
+            tag, 
+            overskrift, 
+            beskrivelse, 
+            bilde 
+        });
+
+        // Redirect to the updated guide
+        res.redirect(`/guide/${id}`);
+    } catch (error) {
+        console.error("Error updating guide:", error);
+        res.status(500).send("Error updating guide.");
+    }
+});
 // })
 
 app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
@@ -312,12 +344,13 @@ app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
     const newGuide = new Guide({
         tittel,
         tag,
-        overskrifter, // Store as an array of strings
-        beskrivelser, // Store as an array of strings
+        
+        overskrift:overskrifter, // Store as an array of strings
+        beskrivelse:beskrivelser, // Store as an array of strings
         bilde, // Store an array of image filenames
         creator: req.session.user._id  
     });
-
+    console.log(newGuide)
     try {
         await newGuide.save();
         res.redirect(`/guide/${newGuide._id}`);
@@ -325,9 +358,8 @@ app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
         console.error("Error saving guide:", error);
         res.status(500).json({ message: "Error saving guide", error });
     }
+    
 });
-
-
 
 
 // Delete Guide Route
@@ -374,7 +406,7 @@ app.post("/create", async (req, res) => {
                 
                 if (result._id) {
                     req.session.user = { name: newUser.email}
-                    res.redirect("/dashborad");
+                    res.redirect("/dashboard");
                 }
             } catch (err) {
                 console.error(err);

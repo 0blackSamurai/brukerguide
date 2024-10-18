@@ -17,7 +17,14 @@ jobs:
 
 
       - name: Pull latest changes
-        run: cd ~/brukerguide && git pull --no-edit origin main
+        run: |
+         cd ~/brukerguide
+         git pull --no-edit origin main
+
+      - name: Verify pull
+        run: | 
+        cd/brukerguide
+        git log -1 --oneline
 
       - name: set up Node.js
         uses: actions/setup-node@v3
@@ -26,7 +33,7 @@ jobs:
 
       - name: install dependencies
         working-directory: ./
-        run: npm install
+        run: cd ~/brukerguide && npm install
 
       - name: reload with PM2
         run: |

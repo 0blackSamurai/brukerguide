@@ -23,8 +23,8 @@ jobs:
 
       - name: Verify pull
         run: | 
-          cd ~/brukerguide
-          git log -1 --oneline
+         cd ~/brukerguide
+         git log -1 --oneline
 
       - name: set up Node.js
         uses: actions/setup-node@v3

@@ -77,7 +77,7 @@
 //   // res.send(`You searched for: ${query}`);
 // });
 
-// app.listen(process.env.PORT);
+// app.listen(process.env.PORT);const express = require("express");
 const express = require("express");
 const app = express();
 require("dotenv").config();
@@ -361,7 +361,7 @@ app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
     console.log(newGuide)
     try {
         await newGuide.save();
-        res.redirect(`/guide/${newGuide._id}`);
+        res.redirect(`/guide/${newguide._id}`);
     } catch (error) {
         console.error("Error saving guide:", error);
         res.status(500).json({ message: "Error saving guide", error });
@@ -516,5 +516,5 @@ let isloggedin;
 
 
 app.listen(process.env.PORT || 4000, () => {
-  console.log(`Server is running on port ${process.env.PORT || 4000}`);
+    console.log("Server started on port 4000");
 });

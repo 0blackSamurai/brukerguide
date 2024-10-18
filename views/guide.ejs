@@ -5,19 +5,32 @@
         <div class="Navguide">
             <a href="/"> <h1>Tilbake</h1></a>
             <% if (isloggedin){ %>
-                <a href="/dashboard"><h2>Profile</h2></a>
+                <a href="/dashborad"><h2>Profile</h2></a>
             <% } else { %>
                 <a href="/login"><h2>Logg inn</h2></a>
             <% } %>
         </div>
         <div class="background">
+            <div class="sidebar">
+                <div class="toppen">
+                    <div class="top3">
+                        <h1 class="">Sekjson</h1>
+                    </div>
+                    <div class="seksjons">
+                        <!-- Loop to display each section header in the sidebar, linked to the respective content -->
+                        <% for (let index = 0; index < guide.overskrift.length; index++) { %>
+                            <h2 ><a class="seksjononet" href="#section<%= index %>"><%= guide.overskrift[index] %></a></h2>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
             <div id="guide<%= guide._id %>" class="guides-container">
                 <h1 class="tittle-class"><%= guide.tittel %></h1>
                 <p class="tag-class"><%= guide.tag %></p>
                 <div class="texton">
                     <% if (guide.overskrift && guide.beskrivelse && guide.bilde && guide.overskrift.length > 0) { %>
                         <% for (let index = 0; index < guide.overskrift.length; index++) { %>
-                            <div>
+                            <div id="section<%= index %>">
                                 <h2><%= guide.overskrift[index] %></h2>
                                 <p><%= guide.beskrivelse[index] %></p>
                                 <img src="/uploads/<%= guide.bilde[index] %>" class="bilder" alt="Bilde <%= index + 1 %>">
@@ -26,7 +39,6 @@
                     <% } else { %>
                         <p>There is no content to display</p>
                     <% } %>
-                    
 
                     <p>Created by: <%= guide.creator ? guide.creator.email : 'Unknown' %></p>
 
@@ -44,6 +56,18 @@
     </div>
 
     <script>
+         document.querySelectorAll('.seksjons a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Scroll to the section smoothly
+                const targetId = this.getAttribute('href').substring(1); // Remove the '#' from href
+                const targetElement = document.getElementById(targetId);
+
+                // Scroll to the target element smoothly
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
         document.querySelectorAll(".editButton").forEach(button => {
             button.addEventListener("click", function () {
                 const guideId = button.getAttribute("data-id");
@@ -75,7 +99,7 @@
     
                 // Generate editable form
                 textDiv.innerHTML = `
-                    <form action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
+                    <form class="edit-mode" action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
                         <div class="texton2">
                             <input type="text" name="tittel" value="${title}" required/>
                             <input type="text" name="tag" value="${tag}" required/>

@@ -1,10 +1,16 @@
 :root {
     --primary-color: rgb(212, 243, 244);
 }
-body {
-    margin: 0px;
-    padding: 0px;
+
+
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%; /* Ensures body and html fill the viewport */
+    font-family: 'Roboto', sans-serif;
 }
+    
 nav {
     border-bottom: 1px solid black;
     display: flex;
@@ -23,6 +29,17 @@ nav {
     width: 75%;
     position: relative;
     left: 25%;
+}
+.sidebar {
+    border: 1px solid black;
+    background-color: var(--primary-color);
+    width: 100%;
+    height: calc(100vh 100px);
+    grid-area: 1 / 1 / 2 / 2; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 .tilbake1{
     display: flex;
@@ -95,6 +112,12 @@ nav {
     align-self: center;
     margin-top: 20px;
 }
+.top3 {
+    align-items: center;
+    align-self: center;
+    border-bottom: 1px solid black; 
+    width: 80%; 
+}
 .boxes{
     display: flex;
     padding: 10px;
@@ -140,27 +163,37 @@ nav {
 .Navguide{
     border-bottom: 1px solid black;
     width: 100%;
-    height: 10%;
+    height: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0px;
+    /* padding: 10px 0px; */
     grid-area: 1 / 1 / 2 / 2;
-    padding-bottom: 15px;
+    /* padding-bottom: 15px; */
 }
 .Navguide a {
     color: black;
     text-decoration: none;
 }
 .background {
-    
+    display: grid;
+    grid-template-columns: 1fr 5fr;
+    grid-template-rows: 1fr;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    position: relative;
+    /* top: -100px; */
+    /*  */
     /* background-color: rgb(182, 175, 175); */
-    top: 100%;
-    height: 100vh -100px;
+    position: relative;
+    height: calc(100vh - 100px);
+    /* padding-bottom: 100px; */
+    margin: none;
+
     width: 100%;
     text-align: center;
-    grid-area: 2 / 1 / 3 / 2; 
+    grid-area: 2 / 1 / 3 / 2;
 }
 .background1 {
     display: flex;
@@ -208,10 +241,14 @@ nav {
     padding-top: 40px;
 }
 .guides-container {
+    margin: auto;
+    align-self: center;
     display: flex;
+    grid-area: 1 / 2 / 2 / 3; 
     justify-content: center;
     flex-direction: column;
     align-items: center;
+    width: 100%;
 }
 .texton {
     display: flex;
@@ -235,7 +272,12 @@ nav {
     width: 100%;
     flex-direction: column;
 }
+.edit-mode {
+    display: flex;
+    margin-top: 40px;
+}
 .sections {
+    margin-top: 40px;
     display: flex;
     flex-direction: row;
     gap: 0px 40px;
@@ -358,9 +400,23 @@ nav {
     align-items: center;
 }
 .parent {
-    display: grid;
+    display: flex;
+    height: 100%; /* Parent container */
+        display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 6fr;
+    grid-template-rows: 1fr 7fr;
     grid-column-gap: 0px;
     grid-row-gap: 0px;
+    }
+.toppen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: absolute;
+    top: 0%;
+    width: 17%;
+}
+.seksjononet {
+    color: black;
+    text-decoration: none;
 }

@@ -9,11 +9,11 @@ on:
 jobs:
   deploy:
     name: deploy to Self-hosted Runner
-    runs-on: Self-hosted
+    runs-on: self-hosted
 
     steps:
-     - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Pull latest changes
         run: git pull --no-edit origin main

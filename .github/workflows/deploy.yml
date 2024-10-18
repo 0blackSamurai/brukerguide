@@ -15,8 +15,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+
       - name: Pull latest changes
-        run: git pull --no-edit origin main
+        run: cd ~/brukerguide && git pull --no-edit origin main
 
       - name: set up Node.js
         uses: actions/setup-node@v3

@@ -83,54 +83,35 @@ const app = express();
 require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const multer = require("multer")
+const multer = require("multer");
 const path = require("path");
 const { stringify } = require("querystring");
-const session = require("express-session");
+const cookieParser = require("cookie-parser");
 
-
-
-app.use(
-    session({
-      secret: process.env.SESSION_SECRET || "passord1", // Replace with a strong secret key
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: false, // Set to true if using HTTPS
-        maxAge: 1000 * 60 * 60 * 24, // Session expires after 1 day
-      },
-    })
-  );
-
-
+app.use(cookieParser(process.env.COOKIE_SECRET || "your-secret-key"));
 
 const Schema = mongoose.Schema;
 
-const diskstorage = multer.diskStorage({destination: function(req, file, cb) {
-    cb(null, "./uploads")
-},
+const diskstorage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, "./uploads")
+    },
     filename: function(req, file, cb) {
         const ext = path.extname(file.originalname)
         console.log("EXT", ext)
-        // if(ext != ".png" || ext != ".JPG"){
-        //     return cb(new Error("only PNG files allowed, love you martin"))
-
-        // }
         const filename = file.originalname
         cb(null, filename)
     }
-    //  filename: function(req, file, cb{
-//     const ext = path.extname(file.originalname);
-})
-const uploads =multer({
-    storage: diskstorage, 
-})
+});
 
-const logget = false;
+const uploads = multer({
+    storage: diskstorage, 
+});
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 mongoose
   .connect("mongodb://127.0.0.1:27017/test")
@@ -139,12 +120,6 @@ mongoose
 
 const saltRounds = 10;
 
-app.set("view engine", "ejs");
-app.use(express.static("public"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-
 const brukerSchema = new Schema({
     tittel: String,
     tag: String,
@@ -152,180 +127,117 @@ const brukerSchema = new Schema({
     beskrivelse: String,
     bilde: Array,
 });
-const brukerguide = mongoose.model("brukerguide", brukerSchema)
 
-// const newbrukerguide  = new brukerguide({ tittel: req.body.tittel,tag: req.body.tag,
-
-// })
+const brukerguide = mongoose.model("brukerguide", brukerSchema);
 
 const userSchema = new Schema({
     email: String,
     password: String,
-    loggedIn: { type: Boolean, default: false }, // Track login status
-  });
+});
 
 const User = mongoose.model("User", userSchema);
 
-app.get("/", async (req, res) => {
-    const guides = await Guide.find();
-   let isloggedin = false
-   if(req.session.user){
-    isloggedin=true;
-  }
-
-    
-    res.render("index" , { guides, isloggedin });
-    
-});
-app.get("/searchResults", async (req, res) => {
-    const guides = await Guide.find();
-    const searchTerm = req.query.query;
-   let isloggedin = false
-   if(req.session.user){
-    isloggedin=true;
-  }
-
-    
-    res.render("searchResults" , { guides, isloggedin });
-    
-});
 const guideSchema = new mongoose.Schema({
     tittel: String,
     tag: String,
     overskrift: [String],
     beskrivelse: [String],
-    bilde: [String], // Keep this as an array of strings
+    bilde: [String],
     creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  
 });
 
+const Guide = mongoose.model("Guide", guideSchema);
 
-// app.get("/guide", (req, res) => {
-//     res.render("guide");
-// });
+function isAuthenticated(req, res, next) {
+    if (req.cookies.user) {
+        return next();
+    }
+    res.redirect("/login");
+}
+
+app.get("/", async (req, res) => {
+    const guides = await Guide.find();
+    let isloggedin = !!req.cookies.user;
+    res.render("index", { guides, isloggedin });
+});
+
+app.get("/searchResults", async (req, res) => {
+    const guides = await Guide.find();
+    const searchTerm = req.query.query;
+    let isloggedin = !!req.cookies.user;
+    res.render("searchResults", { guides, isloggedin });
+});
+
 app.get("/guide/:id", async (req, res) => { 
     const { id } = req.params;
-    
-    // Populate the creator field with user details
     const guide = await Guide.findById(id).populate('creator', 'email');
-    const guideSchema = new mongoose.Schema({
-        tittel: String,
-        tag: String,
-        overskrift: [String],
-        beskrivelse: [String],
-        bilde: [String],
-        creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  // Reference to User model
-    });
-
-    let isloggedin = false;
-    let user = null;
-
-    if (req.session.user) {
-        isloggedin = true;
-        user = req.session.user;  // Pass user details
-    }
-
+    let isloggedin = !!req.cookies.user;
+    let user = req.cookies.user ? JSON.parse(req.cookies.user) : null;
     res.render("guide", { guide, isloggedin, user });
 });
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "./public/uploads"); // Opprett "uploads" mappen hvis den ikke eksisterer
+        cb(null, "./public/uploads");
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
-        const filename = Date.now() + ext; // Bruk tidstempel for å unngå duplikater
+        const filename = Date.now() + ext;
         cb(null, filename);
     }
 });
+
 const upload = multer({ storage: storage });
 
-
 app.get("/create", (req, res) => {
-    let isloggedin=false;
-
-  if(req.session.user){
-    isloggedin=true;
-  }
+    let isloggedin = !!req.cookies.user;
     res.render("createUser", {isloggedin});
 });
-let isloggedin = false
+
 app.get("/login", (req, res) => {
-    let isloggedin = false
-   if(req.session.user){
-    isloggedin=true;
-  }
+    let isloggedin = !!req.cookies.user;
     res.render("login", {isloggedin});
-
 });
-
-app.get("/dashborad", async (req, res) => {
-    if (!req.session.user) {
-        return res.redirect("/login");  // Redirect if the user is not logged in
-    }
-
-    const userId = req.session.user._id;  // Access user ID from session
-    
-    // Fetch user-specific guides or other personalized content
-    const guides = await Guide.find({ creator: userId });  // Example query to get user-specific data
-    
-    res.render("dashborad", { guides, user: req.session.user });  // Pass the user and guides to the dashboard view
-});
-// Middleware to check if the user is logged in
-function isAuthenticated(req, res, next) {
-    if (req.session.user) {
-        return next();
-    }
-    res.redirect("/login");  // Redirect to login if not authenticated
-}
 
 app.get("/dashborad", isAuthenticated, async (req, res) => {
-    const userId = req.session.user._id;  // Access user ID from session
+    const userData = JSON.parse(req.cookies.user);
+    const userId = userData._id;
     const guides = await Guide.find({ creator: userId });
-    
-    res.render("dashborad", { guides, user: req.session.user });
+    res.render("dashborad", { guides, user: userData });
 });
 
 app.get("/ny_guide", (req, res) => {
     res.render("ny_guide"); 
 });
-const Guide = mongoose.model("Guide", guideSchema);
-// app.post("/ny_guide",uploads.single("bilde"),async (req, res )=> {
-//     console.log(req.body)
-//     console.log(req.file, "FILE")
+
 app.post("/guide/:id/edit", upload.array("bilde"), async (req, res) => {
     const { id } = req.params;
     const { tittel, tag, overskrift, beskrivelse, oldBilde } = req.body;
 
     try {
-        // Fetch the existing guide
         const guide = await Guide.findById(id);
         if (!guide) {
             return res.status(404).send("Guide not found");
         }
 
-        // Prepare the new images array, replacing old images with new uploads if any
-        let bilde = oldBilde; // Start with the old images
+        let bilde = oldBilde;
 
         if (req.files && req.files.length > 0) {
-            // Loop through the uploaded files and replace the corresponding old image
             req.files.forEach((file, index) => {
                 if (file && file.filename) {
-                    // Replace the image at the corresponding index
                     bilde[index] = file.filename;
                 }
             });
         }
 
-        // Update the guide with the new data, including images
         await Guide.findByIdAndUpdate(id, { 
             tittel, 
             tag, 
             overskrift, 
             beskrivelse, 
-            bilde, // Updated image array
+            bilde,
         });
 
-        // Redirect to the updated guide
         res.redirect(`/guide/${id}`);
     } catch (error) {
         console.error("Error updating guide:", error);
@@ -333,45 +245,36 @@ app.post("/guide/:id/edit", upload.array("bilde"), async (req, res) => {
     }
 });
 
-// })
-
 app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
     const { tittel, tag, overskrift, beskrivelse } = req.body;
 
-    // Ensure user is authenticated
-    if (!req.session.user || !req.session.user._id) {
+    if (!req.cookies.user) {
         return res.status(403).send("You must be logged in to create a guide.");
     }
 
-    // Convert overskrift and beskrivelse to arrays if they are coming in as strings
+    const userData = JSON.parse(req.cookies.user);
     const overskrifter = Array.isArray(overskrift) ? overskrift : [overskrift];
     const beskrivelser = Array.isArray(beskrivelse) ? beskrivelse : [beskrivelse];
-    const bilde = req.files.map(file => file.filename); // Get filenames of uploaded images
+    const bilde = req.files.map(file => file.filename);
 
-    // Create the new guide instance
     const newGuide = new Guide({
         tittel,
         tag,
-        
-        overskrift:overskrifter, // Store as an array of strings
-        beskrivelse:beskrivelser, // Store as an array of strings
-        bilde, // Store an array of image filenames
-        creator: req.session.user._id  
+        overskrift: overskrifter,
+        beskrivelse: beskrivelser,
+        bilde,
+        creator: userData._id  
     });
-    console.log(newGuide)
+
     try {
         await newGuide.save();
-        res.redirect(`/guide/${newguide._id}`);
+        res.redirect(`/guide/${newGuide._id}`);
     } catch (error) {
         console.error("Error saving guide:", error);
         res.status(500).json({ message: "Error saving guide", error });
     }
-    
 });
 
-
-// Delete Guide Route
-// Delete Guide Route
 app.post("/guide/:id/delete", async (req, res) => {
     const { id } = req.params;
 
@@ -384,16 +287,9 @@ app.post("/guide/:id/delete", async (req, res) => {
     }
 });
 
-
-// let logget = false;
-
 app.get("/logout", (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            return res.status(500).send("Could not log out.");
-        }
-        res.redirect("/login");  // Redirect to login page after logout
-    });
+    res.clearCookie('user');
+    res.redirect("/login");
 });
 
 app.post("/create", async (req, res) => {
@@ -413,7 +309,11 @@ app.post("/create", async (req, res) => {
                 console.log(result);
                 
                 if (result._id) {
-                    req.session.user = { name: newUser.email}
+                    res.cookie('user', JSON.stringify({ _id: result._id, email: result.email }), {
+                        maxAge: 24 * 60 * 60 * 1000, // 1 day
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production'
+                    });
                     res.redirect("/dashborad");
                 }
             } catch (err) {
@@ -426,48 +326,24 @@ app.post("/create", async (req, res) => {
     }
 });
 
-
-// app.post("/login", async (req, res) => {
-//     const { brukernavn, password } = req.body;
-//     const user = await User.findOne({ email: brukernavn });
-
-//     if (!user) {
-//         return res.status(400).json({ message: "User not found" });
-//     }
-
-//     try {
-//         const isMatch = await bcrypt.compare(password, user.password);
-//         if (isMatch) {
-//             logget =true
-//             return res.redirect("/dashboard");
-//         } else {
-//             return res.status(400).json({ message: "Invalid password" });
-//         }
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ message: "Server error" });
-//     }
-// });
 app.post("/login", async (req, res) => {
     const { brukernavn, password } = req.body;
 
-    // Find user by email (brukernavn)
     User.findOne({ email: brukernavn }).then((user) => {
         if (!user) {
-            // If user is not found, redirect to login with an error message
             return res.status(400).redirect("/login");
         }
 
-        // If user is found, compare passwords
         bcrypt.compare(password, user.password).then((isMatch) => {
             if (isMatch) {
-                // If password matches, save the user ID in the session
-                req.session.user = { _id: user._id, email: user.email };
+                res.cookie('user', JSON.stringify({ _id: user._id, email: user.email }), {
+                    maxAge: 24 * 60 * 60 * 1000, // 1 day
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production'
+                });
                 
-                // Redirect to the dashboard after successful login
                 return res.status(200).redirect("/dashborad");
             } else {
-                // If password doesn't match, redirect to login
                 return res.status(400).redirect("/login");
             }
         }).catch((error) => {
@@ -483,27 +359,20 @@ app.post("/login", async (req, res) => {
 app.get("/search", async (req, res) => {
     const searchTerm = req.query.query;
     console.log("Search query:", searchTerm);
-let isloggedin;
-    if(req.session.user){
-        isloggedin=true;
-      }
-    
+    let isloggedin = !!req.cookies.user;
 
     try {
         const matchingGuides = await Guide.find({ 
               $or: [
-                { tittel: { $regex: new RegExp(searchTerm, "i") } }, // Search in title
-                { beskrivelse: { $regex: new RegExp(searchTerm, "i") } } // Search in description
+                { tittel: { $regex: new RegExp(searchTerm, "i") } },
+                { beskrivelse: { $regex: new RegExp(searchTerm, "i") } }
             ]
         });
 
         if (matchingGuides.length > 0) {
-            const guides = matchingGuides;  // If there's a match, get the first guide
-            // const guide = matchingGuides[0];  // If there's a match, get the first guide
-            // Redirect to the guide's page by its ID
+            const guides = matchingGuides;
             res.render("index", { guides, isloggedin });
         } else {
-            // No matches found
             res.status(404).send("No matching guides found.");
         }
     } catch (error) {
@@ -511,9 +380,6 @@ let isloggedin;
         res.status(500).send("An error occurred during the search.");
     }
 });
-
-
-
 
 app.listen(process.env.PORT || 4000, () => {
     console.log("Server started on port 4000");

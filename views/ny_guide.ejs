@@ -32,8 +32,8 @@
                     </div>
                     <h4>bilde</h4>
                     <div class="file-upload">
-                        <input type="file" name="bilde" id="fileInput" accept="image/png, image/jpeg, image/jpg" >
-                        <div id="dropArea" class="drop-area">
+                        <input type="file" name="bilde"class="fileInput" accept="image/png, image/jpeg, image/jpg" >
+                        <div class="dropArea drop-area">
                             <p>Drag & drop your image here</p>
                         </div>
                     </div>
@@ -44,76 +44,109 @@
     </form>
     <button onclick="lagNySeksjon()" class="LagSeksjon">lag ny seksjon</button>
     <script>
-        // Handle drag-and-drop functionality
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('fileInput');
+        function setupDragAndDrop(dropArea, fileInput) {
+            // Prevent default behaviors for drag events
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false); 
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
 
-        // Prevent default behaviors for drag events
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false); 
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+            // Highlight the drop area when dragging files over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
+            });
 
-        // Highlight the drop area when dragging files over it
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
-        });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
+            });
 
-        // Handle file dropping
-        dropArea.addEventListener('drop', handleDrop, false);
+            // Handle file dropping
+            dropArea.addEventListener('drop', handleDrop, false);
 
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
 
-            handleFiles(files);
-        }
+                handleFiles(files);
+            }
 
-        // Handle files from input and drop
-        function handleFiles(files) {
-            const file = files[0]; // Get the first file
+            // Handle files from input and drop
+            function handleFiles(files) {
+                const file = files[0]; // Get the first file
 
-            if (file) {
-                const fileName = document.createElement('p');
-                fileName.innerText = file.name; // Display the file name
-                dropArea.appendChild(fileName); // Show file name in drop area
-                fileInput.files = files; // Update the input field
+                if (file) {
+                    const fileName = document.createElement('p');
+                    fileName.innerText = file.name; // Display the file name
+                    dropArea.appendChild(fileName); // Show file name in drop area
+                    fileInput.files = files; // Update the input field
+                }
             }
         }
 
+        // Setup the initial section
+        setupDragAndDrop(document.querySelector('.dropArea'), document.querySelector('.fileInput'));
+
         // Function to create a new section
         function lagNySeksjon() {
-    let newSection = document.querySelector("#addNewsection");
-    newSection.innerHTML += `
-        <div class="seksjons"> 
-            <h2>seksjon</h2>
-            <div class="midden">
-                <h3>overskrift</h3>
-                <input type="text" placeholder="overskrift" name="overskrift" required>
-            </div>
-            <div class="midden">
-                <h3>beskrivelse</h3>
-                <input type="text" placeholder="beskrivelse" name="beskrivelse" required>
-            </div>
-            <h4>bilde</h4>
-            <div class="file-upload">
-                <input type="file" name="bilde" id="fileInput" accept="image/png, image/jpeg, image/jpg" required>
-                <div id="dropArea" class="drop-area">
-                    <p>Drag & drop your image here</p>
+            const newSection = document.createElement('div');
+            newSection.classList.add('seksjons');
+            newSection.innerHTML = `
+                <h2>seksjon</h2>
+                <div class="midden">
+                    <h3>overskrift</h3>
+                    <input type="text" placeholder="overskrift" name="overskrift" required>
                 </div>
-            </div>
-        </div>
-    `;
-}
+                <div class="midden">
+                    <h3>beskrivelse</h3>
+                    <input type="text" placeholder="beskrivelse" name="beskrivelse" required>
+                </div>
+                <h4>bilde</h4>
+                <div class="file-upload">
+                    <input type="file" name="bilde" class="fileInput" accept="image/png, image/jpeg, image/jpg" required>
+                    <div class="dropArea drop-area">
+                        <p>Drag & drop your image here</p>
+                    </div>
+                </div>
+            `;
+            
+            // Append the new section
+            document.getElementById('addNewsection').appendChild(newSection);
+
+            // Setup drag and drop for the new section
+            const dropArea = newSection.querySelector('.dropArea');
+            const fileInput = newSection.querySelector('.fileInput');
+            setupDragAndDrop(dropArea, fileInput);
+        }
+
+        // Function to create a new section
+//         function lagNySeksjon() {
+//     let newSection = document.querySelector("#addNewsection");
+//     newSection.innerHTML += `
+//         <div class="seksjons"> 
+//             <h2>seksjon</h2>
+//             <div class="midden">
+//                 <h3>overskrift</h3>
+//                 <input type="text" placeholder="overskrift" name="overskrift" required>
+//             </div>
+//             <div class="midden">
+//                 <h3>beskrivelse</h3>
+//                 <input type="text" placeholder="beskrivelse" name="beskrivelse" required>
+//             </div>
+//             <h4>bilde</h4>
+//             <div class="file-upload">
+//                 <input type="file" name="bilde" id="fileInput" accept="image/png, image/jpeg, image/jpg" required>
+//                 <div id="dropArea" class="drop-area">
+//                     <p>Drag & drop your image here</p>
+//                 </div>
+//             </div>
+//         </div>
+//     `;
+// }
 
 
     // </script>

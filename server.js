@@ -272,7 +272,7 @@ app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
     } catch (error) {
         console.error("Detailed error saving guide:", error);
         res.status(500).json({ 
-            message: "Error saving guide", 
+            message: "Error on saving guide", 
             error: {
                 name: error.name,
                 message: error.message,

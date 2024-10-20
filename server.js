@@ -270,11 +270,17 @@ app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
         await newGuide.save();
         res.redirect(`/guide/${newGuide._id}`);
     } catch (error) {
-        console.error("Error saving guide:", error);
-        res.status(500).json({ message: "Error saving guide", error });
+        console.error("Detailed error saving guide:", error);
+        res.status(500).json({ 
+            message: "Error saving guide", 
+            error: {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            } 
+        });
     }
 });
-
 app.post("/guide/:id/delete", async (req, res) => {
     const { id } = req.params;
 

@@ -84,7 +84,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const path = require("path");
+const path = require('path');
 const { stringify } = require("querystring");
 const cookieParser = require("cookie-parser");
 
@@ -178,16 +178,24 @@ app.get("/guide/:id", async (req, res) => {
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "./public/uploads");
+        const uploadPath = path.join(__dirname, 'public', 'uploads');
+        cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        const filename = Date.now() + ext;
-        cb(null, filename);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
 const upload = multer({ storage: storage });
+
+// Ensure the uploads directory exists
+const fs = require('fs');
+const uploadDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 
 app.get("/create", (req, res) => {
     let isloggedin = !!req.cookies.user;
@@ -267,12 +275,12 @@ app.post("/ny_guide", upload.array("bilde"), async (req, res) => {
     });
 
     try {
-        await newGuide.save();
-        res.redirect(`/guide/${newGuide._id}`);
+        const savedGuide = await newGuide.save();
+        res.redirect(`/guide/${savedGuide._id}`);
     } catch (error) {
         console.error("Detailed error saving guide:", error);
         res.status(500).json({ 
-            message: "Error on saving guide", 
+            message: "Error saving guide", 
             error: {
                 name: error.name,
                 message: error.message,

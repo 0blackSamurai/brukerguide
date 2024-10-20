@@ -17,9 +17,8 @@
                         <h1 class="">Sekjson</h1>
                     </div>
                     <div class="seksjons">
-                        <!-- Loop to display each section header in the sidebar, linked to the respective content -->
                         <% for (let index = 0; index < guide.overskrift.length; index++) { %>
-                            <h2 ><a class="seksjononet" href="#section<%= index %>"><%= guide.overskrift[index] %></a></h2>
+                            <h2><a class="seksjononet" href="#section<%= index %>"><%= guide.overskrift[index] %></a></h2>
                         <% } %>
                     </div>
                 </div>
@@ -43,7 +42,6 @@
                     <p>Created by: <%= guide.creator ? guide.creator.email : 'Unknown' %></p>
 
                     <% if (isloggedin && guide.creator && guide.creator._id && user && user._id && guide.creator._id.toString() === user._id.toString()) { %>
-                        <!-- Edit button for logged-in creator -->
                         <button class="editButton" data-id="<%= guide._id %>">Rediger</button>
                         <button class="saveButton" data-id="<%= guide._id %>" style="display:none;">Lagre</button>
                         <form action="/guide/<%= guide._id %>/delete" method="POST" onsubmit="return confirm('Er du sikker på at du vil slette denne guiden?');" style="display:inline;">
@@ -56,18 +54,15 @@
     </div>
 
     <script>
-         document.querySelectorAll('.seksjons a').forEach(anchor => {
+        document.querySelectorAll('.seksjons a').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-
-                // Scroll to the section smoothly
-                const targetId = this.getAttribute('href').substring(1); // Remove the '#' from href
+                const targetId = this.getAttribute('href').substring(1);
                 const targetElement = document.getElementById(targetId);
-
-                // Scroll to the target element smoothly
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
+
         document.querySelectorAll(".editButton").forEach(button => {
             button.addEventListener("click", function () {
                 const guideId = button.getAttribute("data-id");
@@ -76,80 +71,45 @@
                 const titleElement = textDiv.querySelector("h1");
                 const tagElement = textDiv.querySelector(".tag-class");
                 const headerElements = textDiv.querySelectorAll("h2");
-                const descriptionElements = textDiv.querySelectorAll("p:not(.tag-class):not(:last-child)"); // Adjust to match all paragraphs except the tag and last p
+                const descriptionElements = textDiv.querySelectorAll("p:not(.tag-class):not(:last-child)");
                 const imgElements = textDiv.querySelectorAll("img");
     
-                let headers = [];
-                headerElements.forEach((header) => {
-                    headers.push(header.textContent); // Extract header value
-                });
-    
-                let descriptions = [];
-                descriptionElements.forEach((description) => {
-                    descriptions.push(description.textContent);
-                });
-    
-                let images = [];
-                imgElements.forEach((img) => {
-                    images.push(img.src.split('/uploads/')[1]); // Extract image filename from the path
-                });
+                let headers = Array.from(headerElements).map(header => header.textContent);
+                let descriptions = Array.from(descriptionElements).map(description => description.textContent);
+                let images = Array.from(imgElements).map(img => img.src.split('/uploads/')[1]);
     
                 const title = titleElement.textContent;
                 const tag = tagElement.textContent;
     
-                // Generate editable form
                 textDiv.innerHTML = `
                     <form class="edit-mode" action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
                         <div class="texton2">
                             <input type="text" name="tittel" value="${title}" required/>
                             <input type="text" name="tag" value="${tag}" required/>
     
-                            <!-- Edit existing headers and descriptions -->
                             <div id="sections">
-    ${headers.map((header, index) => `
-        <div class="section">
-            <label for="overskrift${index}">Header ${index + 1}:</label>
-            <input type="text" name="overskrift" value="${header}" required/>
-            
-            <label for="beskrivelse${index}">Description ${index + 1}:</label>
-            <textarea name="beskrivelse" required>${descriptions[index]}</textarea>
-            
-            <p>Bilde ${index + 1}: ${images[index]}</p>
-            <label for="bilde${index}">Velg fil:</label>
-            <input type="file" name="bilde" accept="image/*"/> <!-- This is where the user can upload a new image -->
-            <input type="hidden" name="oldBilde" value="${images[index]}"/> <!-- Keep track of the old image filename -->
-        </div>
-    `).join('')}
-</div>
-
-                
+                                ${headers.map((header, index) => `
+                                    <div class="section">
+                                        <label for="overskrift${index}">Header ${index + 1}:</label>
+                                        <input type="text" name="overskrift" value="${header}" required/>
+                                        
+                                        <label for="beskrivelse${index}">Description ${index + 1}:</label>
+                                        <textarea name="beskrivelse" required>${descriptions[index]}</textarea>
+                                        
+                                        <p>Current Image ${index + 1}: ${images[index]}</p>
+                                        <label for="bilde${index}">Choose new file (optional):</label>
+                                        <input type="file" name="bilde" accept="image/*"/>
+                                        <input type="hidden" name="oldBilde" value="${images[index]}"/>
+                                    </div>
+                                `).join('')}
+                            </div>
     
                             <button type="submit">Lagre endringer</button>
                         </div>
                     </form>
                 `;
-    
-                // // Add functionality to add new sections
-                // document.getElementById("addSection").addEventListener("click", function () {
-                //     const sectionsDiv = document.getElementById("sections");
-                //     const newIndex = sectionsDiv.querySelectorAll(".section").length; // Get current number of sections
-    
-                //     // Append new header, description, and file input
-                //     sectionsDiv.insertAdjacentHTML('beforeend', `
-                //         <div class="section">
-                //             <label for="overskrift${newIndex}">Header ${newIndex + 1}:</label>
-                //             <input type="text" name="overskrift" required/>
-    
-                //             <label for="beskrivelse${newIndex}">Description ${newIndex + 1}:</label>
-                //             <textarea name="beskrivelse" required></textarea>
-    
-                //             <label for="bilde${newIndex}">Velg fil:</label>
-                //             <input type="file" name="bilde" accept="image/*"/>
-                //         </div>
-                //     `);
             });
         });
     </script>
-    
 </body>
 </html>

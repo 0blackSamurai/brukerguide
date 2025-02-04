@@ -31,6 +31,8 @@
                         <input type="text" placeholder="beskrivelse" name="beskrivelse" required>
                     </div>
                     <h4>bilde</h4>
+                    
+                    <h1 class="file-name"></h1>
                     <div class="file-upload">
                         <input type="file" name="bilde"class="fileInput" accept="image/png, image/jpeg, image/jpg" >
                         <div class="dropArea drop-area">
@@ -44,49 +46,89 @@
     </form>
     <button onclick="lagNySeksjon()" class="LagSeksjon">lag ny seksjon</button>
     <script>
-        function setupDragAndDrop(dropArea, fileInput) {
-            // Prevent default behaviors for drag events
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false); 
-                document.body.addEventListener(eventName, preventDefaults, false);
-            });
+        // function setupDragAndDrop(dropArea, fileInput) {
+        //     // Prevent default behaviors for drag events
+        //     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        //         dropArea.addEventListener(eventName, preventDefaults, false); 
+        //         document.body.addEventListener(eventName, preventDefaults, false);
+        //     });
 
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+        //     function preventDefaults(e) {
+        //         e.preventDefault();
+        //         e.stopPropagation();
+        //     }
 
-            // Highlight the drop area when dragging files over it
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
-            });
+        //     // Highlight the drop area when dragging files over it
+        //     ['dragenter', 'dragover'].forEach(eventName => {
+        //         dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
+        //     });
 
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
-            });
+        //     ['dragleave', 'drop'].forEach(eventName => {
+        //         dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
+        //     });
 
-            // Handle file dropping
-            dropArea.addEventListener('drop', handleDrop, false);
+        //     // Handle file dropping
+        //     dropArea.addEventListener('drop', handleDrop, false);
 
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
+        //     function handleDrop(e) {
+        //         const dt = e.dataTransfer;
+        //         const files = dt.files;
 
-                handleFiles(files);
-            }
+        //         handleFiles(files);
+        //     }
 
-            // Handle files from input and drop
-            function handleFiles(files) {
-                const file = files[0]; // Get the first file
+        //     // Handle files from input and drop
+        //     function handleFiles(files) {
+        //         const file = files[0]; // Get the first file
 
-                if (file) {
-                    const fileName = document.createElement('p');
-                    fileName.innerText = file.name; // Display the file name
-                    dropArea.appendChild(fileName); // Show file name in drop area
-                    fileInput.files = files; // Update the input field
-                }
+        //         if (file) {
+        //             const fileName = document.createElement('p');
+        //             fileName.innerText = file.name; // Display the file name
+        //             dropArea.appendChild(fileName); // Show file name in drop area
+        //             fileInput.files = files; // Update the input field
+        //         }
+        //     }
+        // }
+       
+    function setupDragAndDrop(dropArea, fileInput, fileNameDisplay) {
+        // ... (keep existing preventDefaults and highlight logic) ...
+
+        function handleFiles(files) {
+            const file = files[0];
+            if (file) {
+                fileNameDisplay.textContent = file.name; // Use dedicated display element
+                fileInput.files = files;
             }
         }
+
+        // Add click handler to trigger file input
+        dropArea.addEventListener('click', () => fileInput.click());
+    }
+
+    function lagNySeksjon() {
+        const sectionTemplate = document.querySelector('#addNewsection').firstElementChild.cloneNode(true);
+        const newSection = sectionTemplate.cloneNode(true);
+        
+        // Clear existing inputs and file name
+        newSection.querySelectorAll('input').forEach(input => input.value = '');
+        newSection.querySelector('.file-name').textContent = '';
+        
+        // Setup new drag and drop
+        const dropArea = newSection.querySelector('.dropArea');
+        const fileInput = newSection.querySelector('.fileInput');
+        const fileNameDisplay = newSection.querySelector('.file-name');
+        setupDragAndDrop(dropArea, fileInput, fileNameDisplay);
+
+        document.querySelector('.seksjons').parentNode.insertBefore(newSection, document.querySelector('.LagSeksjon'));
+    }
+
+    // Initialize first section
+    setupDragAndDrop(
+        document.querySelector('.dropArea'),
+        document.querySelector('.fileInput'),
+        document.querySelector('.file-name')
+    );
+
 
         // Setup the initial section
         setupDragAndDrop(document.querySelector('.dropArea'), document.querySelector('.fileInput'));

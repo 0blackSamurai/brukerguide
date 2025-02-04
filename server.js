@@ -108,6 +108,7 @@ const uploads = multer({
     storage: diskstorage, 
 });
 
+
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
@@ -182,8 +183,8 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        // Use the original filename
+        cb(null, file.originalname);
     }
 });
 
@@ -195,7 +196,6 @@ const uploadDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadDir)){
     fs.mkdirSync(uploadDir, { recursive: true });
 }
-
 
 app.get("/create", (req, res) => {
     let isloggedin = !!req.cookies.user;

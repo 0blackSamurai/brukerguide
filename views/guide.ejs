@@ -63,53 +63,104 @@
             });
         });
 
-        document.querySelectorAll(".editButton").forEach(button => {
-            button.addEventListener("click", function () {
-                const guideId = button.getAttribute("data-id");
-                const textDiv = document.querySelector(`#guide${guideId}`);
-    
-                const titleElement = textDiv.querySelector("h1");
-                const tagElement = textDiv.querySelector(".tag-class");
-                const headerElements = textDiv.querySelectorAll("h2");
-                const descriptionElements = textDiv.querySelectorAll("p:not(.tag-class):not(:last-child)");
-                const imgElements = textDiv.querySelectorAll("img");
-    
-                let headers = Array.from(headerElements).map(header => header.textContent);
-                let descriptions = Array.from(descriptionElements).map(description => description.textContent);
-                let images = Array.from(imgElements).map(img => img.src.split('/uploads/')[1]);
-    
-                const title = titleElement.textContent;
-                const tag = tagElement.textContent;
-    
-                textDiv.innerHTML = `
-                    <form class="edit-mode" action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
-                        <div class="texton2">
-                            <input type="text" name="tittel" value="${title}" required/>
-                            <input type="text" name="tag" value="${tag}" required/>
-    
-                            <div id="sections">
-                                ${headers.map((header, index) => `
-                                    <div class="section">
-                                        <label for="overskrift${index}">Header ${index + 1}:</label>
-                                        <input type="text" name="overskrift" value="${header}" required/>
-                                        
-                                        <label for="beskrivelse${index}">Description ${index + 1}:</label>
-                                        <textarea name="beskrivelse" required>${descriptions[index]}</textarea>
-                                        
-                                        <p>Current Image ${index + 1}: ${images[index]}</p>
-                                        <label for="bilde${index}">Choose new file (optional):</label>
-                                        <input type="file" name="bilde" accept="image/*"/>
-                                        <input type="hidden" name="oldBilde" value="${images[index]}"/>
-                                    </div>
-                                `).join('')}
+        document.querySelectorAll('.editButton').forEach(button => {
+    button.addEventListener("click", function() {
+        const guideId = button.getAttribute("data-id");
+        const textDiv = document.querySelector(`#guide${guideId}`);
+
+        const titleElement = textDiv.querySelector("h1");
+        const tagElement = textDiv.querySelector(".tag-class");
+        const headerElements = textDiv.querySelectorAll("h2");
+        const descriptionElements = textDiv.querySelectorAll("p:not(.tag-class):not(:last-child)");
+        const imgElements = textDiv.querySelectorAll("img");
+
+        let headers = Array.from(headerElements).map(header => header.textContent);
+        let descriptions = Array.from(descriptionElements).map(description => description.textContent);
+        let images = Array.from(imgElements).map(img => img.src.split('/uploads/')[1]);
+
+        const title = titleElement.textContent;
+        const tag = tagElement.textContent;
+
+        textDiv.innerHTML = `
+            <form class="edit-mode" action="/guide/${guideId}/edit" method="POST" enctype="multipart/form-data">
+                <div class="texton2">
+                    <input type="text" name="tittel" value="${title}" required/>
+                    <input type="text" name="tag" value="${tag}" required/>
+
+                    <div id="sections">
+                        ${headers.map((header, index) => `
+                            <div class="section" data-section="${index}">
+                                <label for="overskrift${index}">Header ${index + 1}:</label>
+                                <input type="text" name="overskrift" value="${header}" required/>
+                                
+                                <label for="beskrivelse${index}">Description ${index + 1}:</label>
+                                <textarea name="beskrivelse" required>${descriptions[index]}</textarea>
+                                
+                                <p>Current Image ${index + 1}: ${images[index]}</p>
+                                <label for="bilde${index}">Choose new file (optional):</label>
+                                <input type="file" name="bilde" accept="image/*"/>
+                                <input type="hidden" name="oldBilde" value="${images[index]}"/>
+                                
+                                ${index > 0 ? `<button type="button" class="removeSection" data-section="${index}">Fjern seksjon</button>` : ''}
                             </div>
-    
-                            <button type="submit">Lagre endringer</button>
-                        </div>
-                    </form>
-                `;
-            });
+                        `).join('')}
+                    </div>
+
+                    <button type="button" id="addSection">Legg til seksjon</button>
+                    <button type="submit">Lagre endringer</button>
+                </div>
+            </form>
+        `;
+
+        // Add Section Handler
+        document.getElementById('addSection').addEventListener('click', function() {
+            const sectionsDiv = document.getElementById('sections');
+            const newIndex = sectionsDiv.children.length;
+            
+            const newSection = document.createElement('div');
+            newSection.className = 'section';
+            newSection.dataset.section = newIndex;
+            
+            newSection.innerHTML = `
+                <label for="overskrift${newIndex}">Header ${newIndex + 1}:</label>
+                <input type="text" name="overskrift" required/>
+                
+                <label for="beskrivelse${newIndex}">Description ${newIndex + 1}:</label>
+                <textarea name="beskrivelse" required></textarea>
+                
+                <label for="bilde${newIndex}">Choose image:</label>
+                <input type="file" name="bilde" accept="image/*" required/>
+                <input type="hidden" name="oldBilde" value=""/>
+                
+                <button type="button" class="removeSection" data-section="${newIndex}">Fjern seksjon</button>
+            `;
+            
+            sectionsDiv.appendChild(newSection);
+            attachRemoveHandlers();
         });
+
+        // Remove Section Handler
+        function attachRemoveHandlers() {
+            document.querySelectorAll('.removeSection').forEach(button => {
+                button.addEventListener('click', function() {
+                    const sectionToRemove = this.closest('.section');
+                    if (sectionToRemove) {
+                        sectionToRemove.remove();
+                        // Renumber remaining sections
+                        document.querySelectorAll('.section').forEach((section, index) => {
+                            section.dataset.section = index;
+                            section.querySelector('label[for^="overskrift"]').textContent = `Header ${index + 1}:`;
+                            section.querySelector('label[for^="beskrivelse"]').textContent = `Description ${index + 1}:`;
+                        });
+                    }
+                });
+            });
+        }
+
+        // Initial attachment of remove handlers
+        attachRemoveHandlers();
+    });
+});
     </script>
 </body>
 </html>
